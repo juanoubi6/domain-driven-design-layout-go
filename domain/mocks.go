@@ -10,20 +10,20 @@ type UserRepositoryMock struct {
 	mock.Mock
 }
 
-// CreateUserMock provides a mock function with given fields: prototype
-func (_m *UserRepositoryMock) CreateUser(prototype entities.UserPrototype) (entities.User, error) {
-	ret := _m.Called(prototype)
+// CreateUser provides a mock function with given fields: _a0
+func (_m *UserRepositoryMock) CreateUser(_a0 entities.UserPrototype) (entities.User, error) {
+	ret := _m.Called(_a0)
 
 	var r0 entities.User
 	if rf, ok := ret.Get(0).(func(entities.UserPrototype) entities.User); ok {
-		r0 = rf(prototype)
+		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(entities.User)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(entities.UserPrototype) error); ok {
-		r1 = rf(prototype)
+		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -31,13 +31,13 @@ func (_m *UserRepositoryMock) CreateUser(prototype entities.UserPrototype) (enti
 	return r0, r1
 }
 
-// DeleteUser provides a mock function with given fields: id
-func (_m *UserRepositoryMock) DeleteUser(id int64) error {
-	ret := _m.Called(id)
+// DeleteUser provides a mock function with given fields: _a0
+func (_m *UserRepositoryMock) DeleteUser(_a0 int64) error {
+	ret := _m.Called(_a0)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(int64) error); ok {
-		r0 = rf(id)
+		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -45,20 +45,20 @@ func (_m *UserRepositoryMock) DeleteUser(id int64) error {
 	return r0
 }
 
-// GetUser provides a mock function with given fields: id
-func (_m *UserRepositoryMock) GetUser(id int64) (entities.User, error) {
-	ret := _m.Called(id)
+// GetUser provides a mock function with given fields: _a0
+func (_m *UserRepositoryMock) GetUser(_a0 int64) (entities.User, error) {
+	ret := _m.Called(_a0)
 
 	var r0 entities.User
 	if rf, ok := ret.Get(0).(func(int64) entities.User); ok {
-		r0 = rf(id)
+		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(entities.User)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(id)
+		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -66,13 +66,13 @@ func (_m *UserRepositoryMock) GetUser(id int64) (entities.User, error) {
 	return r0, r1
 }
 
-// GetUsers provides a mock function with given fields: id
-func (_m *UserRepositoryMock) GetUsers(id []int64) ([]entities.User, error) {
-	ret := _m.Called(id)
+// GetUsers provides a mock function with given fields: _a0
+func (_m *UserRepositoryMock) GetUsers(_a0 []int64) ([]entities.User, error) {
+	ret := _m.Called(_a0)
 
 	var r0 []entities.User
 	if rf, ok := ret.Get(0).(func([]int64) []entities.User); ok {
-		r0 = rf(id)
+		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]entities.User)
@@ -81,7 +81,7 @@ func (_m *UserRepositoryMock) GetUsers(id []int64) ([]entities.User, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func([]int64) error); ok {
-		r1 = rf(id)
+		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -89,20 +89,20 @@ func (_m *UserRepositoryMock) GetUsers(id []int64) ([]entities.User, error) {
 	return r0, r1
 }
 
-// UpdateUser provides a mock function with given fields: entity
-func (_m *UserRepositoryMock) UpdateUser(entity entities.User) (entities.User, error) {
-	ret := _m.Called(entity)
+// UpdateUser provides a mock function with given fields: _a0
+func (_m *UserRepositoryMock) UpdateUser(_a0 entities.User) (entities.User, error) {
+	ret := _m.Called(_a0)
 
 	var r0 entities.User
 	if rf, ok := ret.Get(0).(func(entities.User) entities.User); ok {
-		r0 = rf(entity)
+		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(entities.User)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(entities.User) error); ok {
-		r1 = rf(entity)
+		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
 	}
