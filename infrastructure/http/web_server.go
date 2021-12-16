@@ -2,7 +2,6 @@ package http
 
 import (
 	"domain-driven-design-layout/infrastructure/config"
-	"domain-driven-design-layout/infrastructure/http/handlers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,7 +9,7 @@ const basePath = "users-api"
 
 type WebServer struct {
 	handlers *HttpHandlers
-	health   *handlers.HealthHandler
+	health   *HealthHandler
 	config   config.WebConfig
 	engine   *gin.Engine
 }
@@ -22,6 +21,12 @@ func NewWebServer(config config.WebConfig, handlers *HttpHandlers) (*WebServer, 
 		config:   config,
 		engine:   gin.New(),
 	}, nil
+}
+
+func (w *WebServer) BuildRouter() *gin.Engine {
+	w.setMiddleware()
+	w.setHandlers()
+	return w.engine
 }
 
 func (w *WebServer) Start() error {

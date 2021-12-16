@@ -2,25 +2,26 @@ package http
 
 import (
 	"domain-driven-design-layout/infrastructure/builder"
-	"domain-driven-design-layout/infrastructure/config"
-	"domain-driven-design-layout/infrastructure/http/handlers"
 )
 
 type HttpHandlers struct {
-	HealthHandler *handlers.HealthHandler
-	UserHandlers  *handlers.UserHandlers
+	HealthHandler *HealthHandler
+	UserHandlers  *UserHandlers
 }
 
-func CreateHttpHandlers(actions *builder.Actions, config config.WebConfig) (*HttpHandlers, error) {
-	userHandlers, err := handlers.NewUserHandlers(actions, config)
+func CreateHttpHandlers(actions *builder.Actions) (*HttpHandlers, error) {
+	userHandlers, err := NewUserHandlers(actions)
 	if err != nil {
 		return nil, err
 	}
 
-	healthHandler := handlers.HealthHandler{}
+	healthHandler, err := NewHealthHandler()
+	if err != nil {
+		return nil, err
+	}
 
 	return &HttpHandlers{
-		HealthHandler: &healthHandler,
+		HealthHandler: healthHandler,
 		UserHandlers:  userHandlers,
 	}, nil
 }

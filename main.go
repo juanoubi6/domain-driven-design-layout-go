@@ -21,7 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	handlers, err := http.CreateHttpHandlers(actions, appConfig.WebConfig)
+	handlers, err := http.CreateHttpHandlers(actions)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -5,11 +5,11 @@ import (
 )
 
 type Actions struct {
-	CreateUser *users.CreateUser
+	CreateUser users.CreateUser
 }
 
 func CreateActions(repositories *Repositories) (*Actions, error) {
-	createUser, err := users.NewCreateUser(repositories.UserRepository)
+	createUser, err := users.NewCreateUserAction(repositories.UserRepository)
 	if err != nil {
 		return nil, err
 	}
