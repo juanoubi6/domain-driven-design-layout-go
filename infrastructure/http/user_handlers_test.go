@@ -101,7 +101,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_CreateUser_Returns400OnActi
 	mockCreateUserAction.AssertExpectations(suite.T())
 }
 
-func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_SuccessReturns200() {
+func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_Returns200OnSuccess() {
 	w := httptest.NewRecorder()
 
 	req, _ := http.NewRequest("GET", "/users-api/users/1", nil)
@@ -155,7 +155,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_Returns400OnAc
 	mockFindUserByIdAction.AssertExpectations(suite.T())
 }
 
-func (suite *UserHandlersTestSuite) TestUserHandlers_FindUsersByIdList_SuccessReturns200() {
+func (suite *UserHandlersTestSuite) TestUserHandlers_FindUsersByIdList_Returns200OnSuccess() {
 	w := httptest.NewRecorder()
 
 	body, _ := json.Marshal(findUsersByIdListBodyRequest())
@@ -210,7 +210,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUsersByIdList_InvalidBo
 	assert.Equal(suite.T(), 400, w.Code)
 }
 
-func (suite *UserHandlersTestSuite) TestUserHandlers_UpdateUser_SuccessReturns200() {
+func (suite *UserHandlersTestSuite) TestUserHandlers_UpdateUser_Returns200OnSuccess() {
 	w := httptest.NewRecorder()
 
 	body, _ := json.Marshal(updateUserBodyRequest())
@@ -263,6 +263,32 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_UpdateUser_Returns400OnActi
 
 	assert.Equal(suite.T(), 400, w.Code)
 	mockUpdateUserAction.AssertExpectations(suite.T())
+}
+
+func (suite *UserHandlersTestSuite) TestUserHandlers_DeleteUser_Returns400OnActionFailure() {
+	w := httptest.NewRecorder()
+
+	req, _ := http.NewRequest("DELETE", "/users-api/users/1", nil)
+
+	mockDeleteUserAction.On("Execute", int64(1)).Return(errors.New("error"))
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 400, w.Code)
+	mockDeleteUserAction.AssertExpectations(suite.T())
+}
+
+func (suite *UserHandlersTestSuite) TestUserHandlers_DeleteUser_Returns200OnSuccess() {
+	w := httptest.NewRecorder()
+
+	req, _ := http.NewRequest("DELETE", "/users-api/users/1", nil)
+
+	mockDeleteUserAction.On("Execute", int64(1)).Return(nil)
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 200, w.Code)
+	mockDeleteUserAction.AssertExpectations(suite.T())
 }
 
 func createUserBodyRequest() map[string]interface{} {
