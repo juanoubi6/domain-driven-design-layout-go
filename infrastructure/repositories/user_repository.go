@@ -181,5 +181,11 @@ func (ur *UserRepository) UpdateUser(user entities.User) (entities.User, error) 
 }
 
 func (ur *UserRepository) DeleteUser(id int64) error {
+	_, err := ur.connectionPool.Exec(context.Background(), sql.DeleteUser, id)
+	if err != nil {
+		log.Printf("Error updating user: %v", err.Error())
+		return err
+	}
+
 	return nil
 }

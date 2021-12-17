@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"io/ioutil"
 	"testing"
 	"time"
 )
@@ -21,7 +22,7 @@ type UserRepositoryTestSuite struct {
 
 func (suite *UserRepositoryTestSuite) SetupTest() {
 	suite.userRepository = &UserRepository{connectionPool: connectionPool}
-	truncateTables()
+	generateSchema()
 }
 
 func TestUserHandlersTestSuite(t *testing.T) {
@@ -108,6 +109,15 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_GetUser_SuccessfullyRet
 	assert.Equal(suite.T(), 2, len(user.Addresses))
 }
 
+func (suite *UserRepositoryTestSuite) TestUserRepository_GetUser_ReturnsNilWhenUserCouldNotBeFound() {
+	user, err := suite.userRepository.GetUser(999)
+	if err != nil {
+		assert.FailNow(suite.T(), err.Error())
+	}
+
+	assert.Equal(suite.T(), nil, user)
+}
+
 func (suite *UserRepositoryTestSuite) TestUserRepository_GetUsers_SuccessfullyReturnsUsers() {
 	var userId1 int64 = 10
 	var userId2 int64 = 20
@@ -123,9 +133,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_GetUsers_SuccessfullyRe
 	}
 
 	assert.Equal(suite.T(), 2, len(users))
-	assert.Equal(suite.T(), userId1, users[0].ID)
 	assert.Equal(suite.T(), 2, len(users[0].Addresses))
-	assert.Equal(suite.T(), userId2, users[1].ID)
 	assert.Equal(suite.T(), 2, len(users[1].Addresses))
 }
 
@@ -156,9 +164,35 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_UpdateUser_Successfully
 	assert.Equal(suite.T(), "newFirstName", updatedUser.FirstName)
 }
 
-func truncateTables() {
-	_, _ = connectionPool.Exec(context.Background(), "TRUNCATE TABLE users CASCADE")
-	_, _ = connectionPool.Exec(context.Background(), "TRUNCATE TABLE addresses CASCADE")
+func (suite *UserRepositoryTestSuite) TestUserRepository_DeleteUser_SuccessfullyDeletesUser() {
+	var userId int64 = 10
+	saveUserWithAddresses(userId)
+
+	err := suite.userRepository.DeleteUser(userId)
+	if err != nil {
+		assert.FailNow(suite.T(), err.Error())
+	}
+
+	assert.Nil(suite.T(), err)
+
+	deletedUser, err := suite.userRepository.GetUser(userId)
+	if err != nil {
+		assert.FailNow(suite.T(), err.Error())
+	}
+
+	assert.Equal(suite.T(), nil, deletedUser)
+}
+
+func generateSchema() {
+	content, err := ioutil.ReadFile("../../schema.sql")
+	if err != nil {
+		panic("Could not read schema file")
+	}
+
+	_, err = connectionPool.Exec(context.Background(), string(content))
+	if err != nil {
+		panic("Could not execute schema.sql file")
+	}
 }
 
 func saveUserWithAddresses(userId int64) {

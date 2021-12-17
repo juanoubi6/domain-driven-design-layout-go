@@ -41,3 +41,7 @@ const GetUsersWithAddressesByIds = `
 `
 
 const UpdateUser = "UPDATE users SET first_name=$1, last_name=$2, birth_date=$3 WHERE id=$4"
+
+const DeleteUser = "DELETE FROM users WHERE id = $1"
+
+const DeleteAddressesFromUser = "DELETE FROM addresses WHERE id = $1"

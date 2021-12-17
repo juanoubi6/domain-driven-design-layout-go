@@ -1,3 +1,6 @@
+drop table if exists addresses;
+drop table if exists users;
+
 create table if not exists users(
     id bigserial primary key,
     first_name varchar(255) not null,
@@ -13,7 +16,7 @@ create table if not exists addresses(
     city varchar(255),
     constraint fk_users
         foreign key(user_id)
-            references users(id)
+            references users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX ON addresses (user_id);
