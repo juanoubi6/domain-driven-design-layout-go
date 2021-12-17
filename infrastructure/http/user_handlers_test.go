@@ -48,7 +48,7 @@ func (suite *UserHandlersTestSuite) SetupTest() {
 	router.POST("/users-api/users", userHandlers.CreateUser)
 	router.POST("/users-api/users/list", userHandlers.FindUsersByIdList)
 	router.GET("/users-api/users/:id", userHandlers.FindUserById)
-	router.PUT("/users-api/users/:id", userHandlers.UpdateUser)
+	router.PUT("/users-api/users", userHandlers.UpdateUser)
 	router.DELETE("/users-api/users/:id", userHandlers.DeleteUser)
 
 	suite.router = router
@@ -210,6 +210,61 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUsersByIdList_InvalidBo
 	assert.Equal(suite.T(), 400, w.Code)
 }
 
+func (suite *UserHandlersTestSuite) TestUserHandlers_UpdateUser_SuccessReturns200() {
+	w := httptest.NewRecorder()
+
+	body, _ := json.Marshal(updateUserBodyRequest())
+	req, _ := http.NewRequest("PUT", "/users-api/users", bytes.NewBuffer(body))
+
+	expected := createUser()
+
+	mockUpdateUserAction.On("Execute", mock.Anything).Return(expected, nil)
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 200, w.Code)
+	mockUpdateUserAction.AssertExpectations(suite.T())
+
+	responseBody, err := io.ReadAll(w.Body)
+	if err != nil {
+		suite.T().Fail()
+	}
+
+	var userResponse entities.User
+	if err = json.Unmarshal(responseBody, &userResponse); err != nil {
+		suite.T().Fail()
+	}
+
+	assert.Equal(suite.T(), expected.ID, userResponse.ID)
+}
+
+func (suite *UserHandlersTestSuite) TestUserHandlers_UpdateUser_InvalidBodyReturns400() {
+	w := httptest.NewRecorder()
+
+	body, _ := json.Marshal(map[string]interface{}{
+		"invalid": 33,
+	})
+	req, _ := http.NewRequest("PUT", "/users-api/users", bytes.NewBuffer(body))
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 400, w.Code)
+}
+
+func (suite *UserHandlersTestSuite) TestUserHandlers_UpdateUser_Returns400OnActionFailure() {
+	w := httptest.NewRecorder()
+
+	body, _ := json.Marshal(updateUserBodyRequest())
+	req, _ := http.NewRequest("PUT", "/users-api/users", bytes.NewBuffer(body))
+
+	mockUpdateUserAction.On("Execute", mock.Anything).Return(createUser(), errors.New("error"))
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 400, w.Code)
+	mockUpdateUserAction.AssertExpectations(suite.T())
+}
+
 func createUserBodyRequest() map[string]interface{} {
 	return map[string]interface{}{
 		"first_name": "First",
@@ -260,5 +315,14 @@ func createUser() entities.User {
 func findUsersByIdListBodyRequest() map[string]interface{} {
 	return map[string]interface{}{
 		"user_ids": []int64{1, 2, 3},
+	}
+}
+
+func updateUserBodyRequest() map[string]interface{} {
+	return map[string]interface{}{
+		"id":         1,
+		"first_name": "First",
+		"last_name":  "Last",
+		"birth_date": "1995-07-20T00:00:00.000Z",
 	}
 }

@@ -45,6 +45,6 @@ func (w *WebServer) setHandlers() {
 	router.POST("/users", w.handlers.UserHandlers.CreateUser)
 	router.POST("/users/list", w.handlers.UserHandlers.FindUsersByIdList)
 	router.GET("/users/:id", w.handlers.UserHandlers.FindUserById)
-	router.PUT("/users/:id", w.handlers.UserHandlers.UpdateUser)
+	router.PUT("/users", w.handlers.UserHandlers.UpdateUser)
 	router.DELETE("/users/:id", w.handlers.UserHandlers.DeleteUser)
 }
