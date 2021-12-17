@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"context"
 	"domain-driven-design-layout/domain/entities"
 	"domain-driven-design-layout/infrastructure/config"
 	"domain-driven-design-layout/infrastructure/repositories/sql"
@@ -13,7 +12,7 @@ import (
 	"time"
 )
 
-var connectionPool = sql.CreateConnectionPool(config.LoadAppConfig().SQLConfig)
+var db = sql.CreateDatabaseConnection(config.LoadAppConfig().SQLConfig)
 
 type UserRepositoryTestSuite struct {
 	suite.Suite
@@ -21,7 +20,7 @@ type UserRepositoryTestSuite struct {
 }
 
 func (suite *UserRepositoryTestSuite) SetupTest() {
-	suite.userRepository = &UserRepository{connectionPool: connectionPool}
+	suite.userRepository = &UserRepository{db: db}
 	generateSchema()
 }
 
@@ -85,7 +84,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_CreateUser_RollbacksTra
 	}
 
 	createdUsers := 0
-	err = connectionPool.QueryRow(context.Background(), "SELECT count(*) FROM users").Scan(&createdUsers)
+	err = db.QueryRow("SELECT count(*) FROM users").Scan(&createdUsers)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}
@@ -115,7 +114,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_GetUser_ReturnsNilWhenU
 		assert.FailNow(suite.T(), err.Error())
 	}
 
-	assert.Equal(suite.T(), nil, user)
+	assert.Nil(suite.T(), nil, user)
 }
 
 func (suite *UserRepositoryTestSuite) TestUserRepository_GetUsers_SuccessfullyReturnsUsers() {
@@ -180,7 +179,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_DeleteUser_Successfully
 		assert.FailNow(suite.T(), err.Error())
 	}
 
-	assert.Equal(suite.T(), nil, deletedUser)
+	assert.Nil(suite.T(), deletedUser)
 }
 
 func generateSchema() {
@@ -189,7 +188,7 @@ func generateSchema() {
 		panic("Could not read schema file")
 	}
 
-	_, err = connectionPool.Exec(context.Background(), string(content))
+	_, err = db.Exec(string(content))
 	if err != nil {
 		panic("Could not execute schema.sql file")
 	}
@@ -209,7 +208,7 @@ func saveUserWithAddresses(userId int64) {
 		userId, userId,
 	)
 
-	_, _ = connectionPool.Exec(context.Background(), insertUsersQuery)
-	_, _ = connectionPool.Exec(context.Background(), insertAddressesQuery)
+	_, _ = db.Exec(insertUsersQuery)
+	_, _ = db.Exec(insertAddressesQuery)
 
 }

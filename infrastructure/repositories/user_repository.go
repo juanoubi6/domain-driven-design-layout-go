@@ -7,23 +7,22 @@ import (
 	"domain-driven-design-layout/infrastructure/repositories/sql"
 	"domain-driven-design-layout/infrastructure/repositories/sql/models"
 	"errors"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jmoiron/sqlx"
 	"log"
 )
 
 type UserRepository struct {
-	connectionPool *pgxpool.Pool
+	db *sqlx.DB
 }
 
 func NewUserRepository(config config.SQLConfig) (*UserRepository, error) {
-	return &UserRepository{connectionPool: sql.CreateConnectionPool(config)}, nil
+	return &UserRepository{db: sql.CreateDatabaseConnection(config)}, nil
 }
 
 func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
 	var user entities.User
 
-	rows, err := ur.connectionPool.Query(context.TODO(), sql.GetUserWithAddressesById, id)
+	rows, err := ur.db.QueryxContext(context.TODO(), sql.GetUserWithAddressesById, id)
 	if err != nil {
 		log.Printf("Error retrieving user of id %v: %v", id, err.Error())
 		return nil, err
@@ -40,11 +39,18 @@ func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
 		user.Addresses = append(user.Addresses, address)
 	}
 
+	// User with ID 0 indicates no user was found
+	if user.ID == 0 {
+		return nil, nil
+	}
+
 	return &user, nil
 }
 
 func (ur *UserRepository) GetUsers(ids []int64) ([]entities.User, error) {
-	rows, err := ur.connectionPool.Query(context.TODO(), sql.GetUsersWithAddressesByIds, ids)
+	query, args, err := sqlx.In(sql.GetUsersWithAddressesByIds, ids)
+	query = ur.db.Rebind(query)
+	rows, err := ur.db.QueryxContext(context.TODO(), query, args...)
 	if err != nil {
 		log.Printf("Error retrieving users of ids %v: %v", ids, err.Error())
 		return nil, err
@@ -82,17 +88,15 @@ func (ur *UserRepository) GetUsers(ids []int64) ([]entities.User, error) {
 func (ur *UserRepository) CreateUser(prototype entities.UserPrototype) (entities.User, error) {
 	var createdUser entities.User
 
-	userModel := models.UserPrototypeToModel(prototype)
-
 	// Start transaction to insert the user and it's addresses
-	tx, err := ur.connectionPool.Begin(context.TODO())
+	tx, err := ur.db.Beginx()
 	if err != nil {
 		log.Printf("Error creating transaction: %v", err.Error())
 		return createdUser, err
 	}
 
 	var userId int64
-	err = tx.QueryRow(context.Background(), sql.InsertUser, userModel.FirstName, userModel.LastName, userModel.BirthDate).Scan(&userId)
+	err = tx.QueryRowContext(context.Background(), sql.InsertUser, prototype.FirstName, prototype.LastName, prototype.BirthDate).Scan(&userId)
 	if err != nil {
 		log.Printf("Error creating user: %v", err.Error())
 		return createdUser, err
@@ -100,35 +104,20 @@ func (ur *UserRepository) CreateUser(prototype entities.UserPrototype) (entities
 
 	createdUser.ID = userId
 
-	batch := pgx.Batch{}
+	var addressModels []models.AddressModel
 	for _, addressPrototype := range prototype.AddressesPrototypes {
-		addressModel := models.AddressPrototypeToModel(addressPrototype, createdUser.ID)
-		batch.Queue(sql.InsertAddress, addressModel.UserID, addressModel.Street, addressModel.Number, addressModel.City)
+		addressModels = append(addressModels, models.CreateAddressModelFromPrototype(addressPrototype, createdUser.ID))
 	}
 
-	batchResult := tx.SendBatch(context.TODO(), &batch)
-	for i := 0; i < batch.Len(); i++ {
-		_, err := batchResult.Exec()
-		if err != nil {
-			log.Printf("Error executing query from batch: %v", err.Error())
-			tx.Rollback(context.TODO())
-			return createdUser, err
-		}
-	}
-
-	if err := batchResult.Close(); err != nil {
-		log.Printf("Error closing address creation queries batch: %v", err.Error())
-		tx.Rollback(context.TODO())
-		return createdUser, err
-	}
+	_, err = tx.NamedExecContext(context.TODO(), sql.InsertAddress, addressModels)
 
 	// Finish transaction
-	if err = tx.Commit(context.TODO()); err != nil {
+	if err = tx.Commit(); err != nil {
 		log.Printf("Error when committing tx: %v", err.Error())
 		return createdUser, err
 	}
 
-	if err := ur.connectionPool.QueryRow(context.Background(), sql.GetUserById, createdUser.ID).Scan(
+	if err := ur.db.QueryRowContext(context.Background(), sql.GetUserById, createdUser.ID).Scan(
 		&createdUser.ID,
 		&createdUser.FirstName,
 		&createdUser.LastName,
@@ -138,7 +127,7 @@ func (ur *UserRepository) CreateUser(prototype entities.UserPrototype) (entities
 		return createdUser, err
 	}
 
-	rows, err := ur.connectionPool.Query(context.TODO(), sql.GetAddressesByUserId, createdUser.ID)
+	rows, err := ur.db.QueryContext(context.TODO(), sql.GetAddressesByUserId, createdUser.ID)
 	if err != nil {
 		log.Printf("Error retrieving addresses of user id %v: %v", createdUser.ID, err.Error())
 		return createdUser, err
@@ -171,7 +160,7 @@ func (ur *UserRepository) UpdateUser(user entities.User) (entities.User, error) 
 	originalUser.LastName = user.LastName
 	originalUser.BirthDate = user.BirthDate
 
-	_, err = ur.connectionPool.Exec(context.Background(), sql.UpdateUser, originalUser.FirstName, originalUser.LastName, originalUser.BirthDate, originalUser.ID)
+	_, err = ur.db.ExecContext(context.Background(), sql.UpdateUser, originalUser.FirstName, originalUser.LastName, originalUser.BirthDate, originalUser.ID)
 	if err != nil {
 		log.Printf("Error updating user: %v", err.Error())
 		return user, err
@@ -181,7 +170,7 @@ func (ur *UserRepository) UpdateUser(user entities.User) (entities.User, error) 
 }
 
 func (ur *UserRepository) DeleteUser(id int64) error {
-	_, err := ur.connectionPool.Exec(context.Background(), sql.DeleteUser, id)
+	_, err := ur.db.ExecContext(context.Background(), sql.DeleteUser, id)
 	if err != nil {
 		log.Printf("Error updating user: %v", err.Error())
 		return err
