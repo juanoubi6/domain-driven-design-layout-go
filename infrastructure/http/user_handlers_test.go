@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -113,6 +114,19 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_SuccessReturns
 
 	assert.Equal(suite.T(), 200, w.Code)
 	mockFindUserByIdAction.AssertExpectations(suite.T())
+
+	responseBody, err := io.ReadAll(w.Body)
+	if err != nil {
+		suite.T().Fail()
+	}
+
+	var userResponse entities.User
+	if err = json.Unmarshal(responseBody, &userResponse); err != nil {
+		suite.T().Fail()
+	}
+
+	assert.Equal(suite.T(), expected.ID, userResponse.ID)
+
 }
 
 func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_Returns404WhenUserCouldNotBeFound() {
