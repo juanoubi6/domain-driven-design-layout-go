@@ -16,9 +16,7 @@ import (
 	"time"
 )
 
-var (
-	mockCreateUserAction = new(domain.CreateUserMock)
-)
+var mockCreateUserAction = new(domain.CreateUserMock)
 
 type UserHandlersTestSuite struct {
 	suite.Suite
