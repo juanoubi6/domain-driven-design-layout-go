@@ -8,10 +8,10 @@ import (
 	"testing"
 )
 
-var userRepositoryMock = new(domain.UserRepositoryMock)
-var createUserAction, _ = NewCreateUserAction(userRepositoryMock)
-
 func TestCreateUser_Execute_Success(t *testing.T) {
+	var userRepositoryMock = new(domain.UserRepositoryMock)
+	var createUserAction, _ = NewCreateUserAction(userRepositoryMock)
+
 	var prototype = domain.CreateUserPrototype()
 	var expected = domain.CreateUser()
 
@@ -25,6 +25,9 @@ func TestCreateUser_Execute_Success(t *testing.T) {
 }
 
 func TestCreateUser_Execute_FailsIfUserRepositoryFails(t *testing.T) {
+	var userRepositoryMock = new(domain.UserRepositoryMock)
+	var createUserAction, _ = NewCreateUserAction(userRepositoryMock)
+
 	var prototype = domain.CreateUserPrototype()
 
 	userRepositoryMock.On("CreateUser", prototype).Return(entities.User{}, errors.New("error"))
