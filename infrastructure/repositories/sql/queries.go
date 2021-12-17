@@ -1,9 +1,11 @@
 package sql
 
 const InsertUser = "INSERT INTO users (first_name, last_name, birth_date) VALUES ($1,$2,$3) RETURNING id"
+
 const InsertAddress = "INSERT INTO addresses (user_id, street, number, city) VALUES ($1,$2,$3,$4) RETURNING id"
 
 const GetUserById = "SELECT u.id, u.first_name, u.last_name, u.birth_date FROM users u WHERE id=$1"
+
 const GetAddressesByUserId = "SELECT a.id, a.user_id, a.street, a.number, a.city FROM addresses a WHERE user_id=$1"
 
 const GetUserWithAddressesById = `
@@ -37,3 +39,5 @@ const GetUsersWithAddressesByIds = `
 	LEFT JOIN addresses a ON u.id = a.user_id
 	WHERE u.id = ANY ($1)
 `
+
+const UpdateUser = "UPDATE users SET first_name=$1, last_name=$2, birth_date=$3 WHERE id=$4"

@@ -129,6 +129,33 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_GetUsers_SuccessfullyRe
 	assert.Equal(suite.T(), 2, len(users[1].Addresses))
 }
 
+func (suite *UserRepositoryTestSuite) TestUserRepository_UpdateUser_SuccessfullyUpdatesUser() {
+	var userId int64 = 10
+	saveUserWithAddresses(userId)
+
+	userWithUpdatedFields := entities.User{
+		ID:        userId,
+		FirstName: "newFirstName",
+		LastName:  "newLastName",
+		BirthDate: time.Now(),
+		Addresses: nil,
+	}
+
+	user, err := suite.userRepository.UpdateUser(userWithUpdatedFields)
+	if err != nil {
+		assert.FailNow(suite.T(), err.Error())
+	}
+
+	assert.Equal(suite.T(), "newFirstName", user.FirstName)
+
+	updatedUser, err := suite.userRepository.GetUser(userId)
+	if err != nil {
+		assert.FailNow(suite.T(), err.Error())
+	}
+
+	assert.Equal(suite.T(), "newFirstName", updatedUser.FirstName)
+}
+
 func truncateTables() {
 	_, _ = connectionPool.Exec(context.Background(), "TRUNCATE TABLE users CASCADE")
 	_, _ = connectionPool.Exec(context.Background(), "TRUNCATE TABLE addresses CASCADE")

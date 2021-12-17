@@ -6,6 +6,7 @@ import (
 	"domain-driven-design-layout/infrastructure/config"
 	"domain-driven-design-layout/infrastructure/repositories/sql"
 	"domain-driven-design-layout/infrastructure/repositories/sql/models"
+	"errors"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
@@ -157,10 +158,26 @@ func (ur *UserRepository) CreateUser(prototype entities.UserPrototype) (entities
 	return createdUser, nil
 }
 
-func (ur *UserRepository) UpdateUser(entity entities.User) (entities.User, error) {
-	var user entities.User
+func (ur *UserRepository) UpdateUser(user entities.User) (entities.User, error) {
+	originalUser, err := ur.GetUser(user.ID)
+	if err != nil {
+		return user, err
+	}
+	if originalUser == nil {
+		return user, errors.New("user not found")
+	}
 
-	return user, nil
+	originalUser.FirstName = user.FirstName
+	originalUser.LastName = user.LastName
+	originalUser.BirthDate = user.BirthDate
+
+	_, err = ur.connectionPool.Exec(context.Background(), sql.UpdateUser, originalUser.FirstName, originalUser.LastName, originalUser.BirthDate, originalUser.ID)
+	if err != nil {
+		log.Printf("Error updating user: %v", err.Error())
+		return user, err
+	}
+
+	return *originalUser, nil
 }
 
 func (ur *UserRepository) DeleteUser(id int64) error {
