@@ -155,6 +155,61 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_Returns400OnAc
 	mockFindUserByIdAction.AssertExpectations(suite.T())
 }
 
+func (suite *UserHandlersTestSuite) TestUserHandlers_FindUsersByIdList_SuccessReturns200() {
+	w := httptest.NewRecorder()
+
+	body, _ := json.Marshal(findUsersByIdListBodyRequest())
+	req, _ := http.NewRequest("POST", "/users-api/users/list", bytes.NewBuffer(body))
+
+	expected := []entities.User{createUser()}
+
+	mockFindUsersByIdListAction.On("Execute", []int64{1, 2, 3}).Return(expected, nil)
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 200, w.Code)
+	mockFindUsersByIdListAction.AssertExpectations(suite.T())
+
+	responseBody, err := io.ReadAll(w.Body)
+	if err != nil {
+		suite.T().Fail()
+	}
+
+	var usersResponse []entities.User
+	if err = json.Unmarshal(responseBody, &usersResponse); err != nil {
+		suite.T().Fail()
+	}
+
+	assert.Equal(suite.T(), len(expected), len(usersResponse))
+}
+
+func (suite *UserHandlersTestSuite) TestUserHandlers_FindUsersByIdList_Returns400OnActionFailure() {
+	w := httptest.NewRecorder()
+
+	body, _ := json.Marshal(findUsersByIdListBodyRequest())
+	req, _ := http.NewRequest("POST", "/users-api/users/list", bytes.NewBuffer(body))
+
+	mockFindUsersByIdListAction.On("Execute", mock.Anything).Return(nil, errors.New("error"))
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 400, w.Code)
+	mockFindUsersByIdListAction.AssertExpectations(suite.T())
+}
+
+func (suite *UserHandlersTestSuite) TestUserHandlers_FindUsersByIdList_InvalidBodyReturns400() {
+	w := httptest.NewRecorder()
+
+	body, _ := json.Marshal(map[string]interface{}{
+		"invalid_value": 33,
+	})
+	req, _ := http.NewRequest("POST", "/users-api/users/list", bytes.NewBuffer(body))
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 400, w.Code)
+}
+
 func createUserBodyRequest() map[string]interface{} {
 	return map[string]interface{}{
 		"first_name": "First",
@@ -199,5 +254,11 @@ func createUser() entities.User {
 				City:   nil,
 			},
 		},
+	}
+}
+
+func findUsersByIdListBodyRequest() map[string]interface{} {
+	return map[string]interface{}{
+		"user_ids": []int64{1, 2, 3},
 	}
 }
