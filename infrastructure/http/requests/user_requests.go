@@ -16,10 +16,10 @@ type CreateUserRequest struct {
 	} `json:"addresses" binding:"required"`
 }
 
-func (cur *CreateUserRequest) ToUserPrototype() entities.UserPrototype {
+func (req *CreateUserRequest) ToUserPrototype() entities.UserPrototype {
 	var addressPrototypes []entities.AddressPrototype
 
-	for _, address := range cur.Addresses {
+	for _, address := range req.Addresses {
 		addressPrototypes = append(addressPrototypes, entities.AddressPrototype{
 			Street: address.Street,
 			Number: address.Number,
@@ -28,9 +28,30 @@ func (cur *CreateUserRequest) ToUserPrototype() entities.UserPrototype {
 	}
 
 	return entities.UserPrototype{
-		FirstName:           cur.FirstName,
-		LastName:            cur.LastName,
-		BirthDate:           cur.BirthDate,
+		FirstName:           req.FirstName,
+		LastName:            req.LastName,
+		BirthDate:           req.BirthDate,
 		AddressesPrototypes: addressPrototypes,
+	}
+}
+
+type FindUsersByIdListRequest struct {
+	UserIDs []int64 `json:"user_ids" binding:"required"`
+}
+
+type UpdateUserRequest struct {
+	ID        int64     `json:"id" binding:"required"`
+	FirstName string    `json:"first_name" binding:"required"`
+	LastName  string    `json:"last_name" binding:"required"`
+	BirthDate time.Time `json:"birth_date" binding:"required"`
+}
+
+func (req *UpdateUserRequest) ToUser() entities.User {
+	return entities.User{
+		ID:        req.ID,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		BirthDate: req.BirthDate,
+		Addresses: []entities.Address{},
 	}
 }

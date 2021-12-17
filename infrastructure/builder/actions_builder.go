@@ -5,7 +5,11 @@ import (
 )
 
 type Actions struct {
-	CreateUser users.CreateUser
+	CreateUser        users.CreateUser
+	FindUserById      users.FindUserById
+	FindUsersByIdList users.FindUsersByIdList
+	UpdateUser        users.UpdateUser
+	DeleteUser        users.DeleteUser
 }
 
 func CreateActions(repositories *Repositories) (*Actions, error) {
@@ -14,7 +18,31 @@ func CreateActions(repositories *Repositories) (*Actions, error) {
 		return nil, err
 	}
 
+	findUserById, err := users.NewFindUserByIdAction(repositories.UserRepository)
+	if err != nil {
+		return nil, err
+	}
+
+	findUsersByIdList, err := users.NewFindUsersByIdListAction(repositories.UserRepository)
+	if err != nil {
+		return nil, err
+	}
+
+	updateUser, err := users.NewUpdateUserAction(repositories.UserRepository)
+	if err != nil {
+		return nil, err
+	}
+
+	deleteUser, err := users.NewDeleteUserAction(repositories.UserRepository)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Actions{
-		CreateUser: createUser,
+		CreateUser:        createUser,
+		FindUserById:      findUserById,
+		FindUsersByIdList: findUsersByIdList,
+		UpdateUser:        updateUser,
+		DeleteUser:        deleteUser,
 	}, nil
 }

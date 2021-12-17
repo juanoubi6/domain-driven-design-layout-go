@@ -43,4 +43,8 @@ func (w *WebServer) setHandlers() {
 	router := w.engine.Group(basePath)
 	router.GET("health", w.health.Status)
 	router.POST("/users", w.handlers.UserHandlers.CreateUser)
+	router.POST("/users/list", w.handlers.UserHandlers.FindUsersByIdList)
+	router.GET("/users/:id", w.handlers.UserHandlers.FindUserById)
+	router.PUT("/users/:id", w.handlers.UserHandlers.UpdateUser)
+	router.DELETE("/users/:id", w.handlers.UserHandlers.DeleteUser)
 }

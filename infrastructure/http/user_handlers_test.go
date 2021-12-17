@@ -17,6 +17,10 @@ import (
 )
 
 var mockCreateUserAction = new(domain.CreateUserMock)
+var mockFindUserByIdAction = new(domain.FindUserByIdMock)
+var mockFindUsersByIdListAction = new(domain.FindUsersByIdListMock)
+var mockUpdateUserAction = new(domain.UpdateUserMock)
+var mockDeleteUserAction = new(domain.DeleteUserMock)
 
 type UserHandlersTestSuite struct {
 	suite.Suite
@@ -25,14 +29,26 @@ type UserHandlersTestSuite struct {
 
 func (suite *UserHandlersTestSuite) SetupTest() {
 	mockCreateUserAction = new(domain.CreateUserMock)
+	mockFindUserByIdAction = new(domain.FindUserByIdMock)
+	mockFindUsersByIdListAction = new(domain.FindUsersByIdListMock)
+	mockUpdateUserAction = new(domain.UpdateUserMock)
+	mockDeleteUserAction = new(domain.DeleteUserMock)
 
 	router := gin.New()
 
 	userHandlers := &UserHandlers{
-		createUserAction: mockCreateUserAction,
+		createUserAction:        mockCreateUserAction,
+		findUserByIdAction:      mockFindUserByIdAction,
+		findUsersByIdListAction: mockFindUsersByIdListAction,
+		updateUserAction:        mockUpdateUserAction,
+		deleteUserAction:        mockDeleteUserAction,
 	}
 
 	router.POST("/users-api/users", userHandlers.CreateUser)
+	router.POST("/users-api/users/list", userHandlers.FindUsersByIdList)
+	router.GET("/users-api/users/:id", userHandlers.FindUserById)
+	router.PUT("/users-api/users/:id", userHandlers.UpdateUser)
+	router.DELETE("/users-api/users/:id", userHandlers.DeleteUser)
 
 	suite.router = router
 }
@@ -82,6 +98,47 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_CreateUser_Returns400OnActi
 
 	assert.Equal(suite.T(), 400, w.Code)
 	mockCreateUserAction.AssertExpectations(suite.T())
+}
+
+func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_SuccessReturns200() {
+	w := httptest.NewRecorder()
+
+	req, _ := http.NewRequest("GET", "/users-api/users/1", nil)
+
+	expected := createUser()
+
+	mockFindUserByIdAction.On("Execute", int64(1)).Return(&expected, nil)
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 200, w.Code)
+	mockFindUserByIdAction.AssertExpectations(suite.T())
+}
+
+func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_Returns404WhenUserCouldNotBeFound() {
+	w := httptest.NewRecorder()
+
+	req, _ := http.NewRequest("GET", "/users-api/users/1", nil)
+
+	mockFindUserByIdAction.On("Execute", int64(1)).Return(nil, nil)
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 404, w.Code)
+	mockFindUserByIdAction.AssertExpectations(suite.T())
+}
+
+func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_Returns400OnActionFailure() {
+	w := httptest.NewRecorder()
+
+	req, _ := http.NewRequest("GET", "/users-api/users/1", nil)
+
+	mockFindUserByIdAction.On("Execute", int64(1)).Return(nil, errors.New("error"))
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 400, w.Code)
+	mockFindUserByIdAction.AssertExpectations(suite.T())
 }
 
 func createUserBodyRequest() map[string]interface{} {

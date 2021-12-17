@@ -19,10 +19,10 @@ func NewUserRepository(config config.SQLConfig) (*UserRepository, error) {
 	return &UserRepository{connectionPool: sql.CreateConnectionPool(config)}, nil
 }
 
-func (ur *UserRepository) GetUser(id int64) (entities.User, error) {
+func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
 	var user entities.User
 
-	return user, nil
+	return &user, nil
 }
 
 func (ur *UserRepository) GetUsers(id []int64) ([]entities.User, error) {
