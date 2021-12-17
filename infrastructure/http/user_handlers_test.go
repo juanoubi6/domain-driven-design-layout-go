@@ -117,12 +117,12 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_Returns200OnSu
 
 	responseBody, err := io.ReadAll(w.Body)
 	if err != nil {
-		suite.T().Fail()
+		suite.T().FailNow()
 	}
 
 	var userResponse entities.User
 	if err = json.Unmarshal(responseBody, &userResponse); err != nil {
-		suite.T().Fail()
+		suite.T().FailNow()
 	}
 
 	assert.Equal(suite.T(), expected.ID, userResponse.ID)
@@ -172,12 +172,12 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUsersByIdList_Returns20
 
 	responseBody, err := io.ReadAll(w.Body)
 	if err != nil {
-		suite.T().Fail()
+		suite.T().FailNow()
 	}
 
 	var usersResponse []entities.User
 	if err = json.Unmarshal(responseBody, &usersResponse); err != nil {
-		suite.T().Fail()
+		suite.T().FailNow()
 	}
 
 	assert.Equal(suite.T(), len(expected), len(usersResponse))
@@ -227,12 +227,12 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_UpdateUser_Returns200OnSucc
 
 	responseBody, err := io.ReadAll(w.Body)
 	if err != nil {
-		suite.T().Fail()
+		suite.T().FailNow()
 	}
 
 	var userResponse entities.User
 	if err = json.Unmarshal(responseBody, &userResponse); err != nil {
-		suite.T().Fail()
+		suite.T().FailNow()
 	}
 
 	assert.Equal(suite.T(), expected.ID, userResponse.ID)

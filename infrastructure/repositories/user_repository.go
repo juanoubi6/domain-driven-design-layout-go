@@ -22,11 +22,58 @@ func NewUserRepository(config config.SQLConfig) (*UserRepository, error) {
 func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
 	var user entities.User
 
+	rows, err := ur.connectionPool.Query(context.TODO(), sql.GetUserWithAddressesById, id)
+	if err != nil {
+		log.Printf("Error retrieving user of id %v: %v", id, err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var address entities.Address
+		if err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.BirthDate, &address.ID, &address.UserID, &address.Street, &address.Number, &address.City); err != nil {
+			log.Printf("Error scanning row: %v", err.Error())
+			return nil, err
+		}
+
+		user.Addresses = append(user.Addresses, address)
+	}
+
 	return &user, nil
 }
 
-func (ur *UserRepository) GetUsers(id []int64) ([]entities.User, error) {
+func (ur *UserRepository) GetUsers(ids []int64) ([]entities.User, error) {
+	rows, err := ur.connectionPool.Query(context.TODO(), sql.GetUsersWithAddressesByIds, ids)
+	if err != nil {
+		log.Printf("Error retrieving users of ids %v: %v", ids, err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var userMap = make(map[int64]entities.User)
+
+	for rows.Next() {
+		var user entities.User
+		var address entities.Address
+		if err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.BirthDate, &address.ID, &address.UserID, &address.Street, &address.Number, &address.City); err != nil {
+			log.Printf("Error scanning row: %v", err.Error())
+			return nil, err
+		}
+
+		if _, ok := userMap[user.ID]; ok {
+			user := userMap[user.ID]
+			user.Addresses = append(user.Addresses, address)
+			userMap[user.ID] = user
+		} else {
+			user.Addresses = append(user.Addresses, address)
+			userMap[user.ID] = user
+		}
+	}
+
 	var users []entities.User
+	for _, user := range userMap {
+		users = append(users, user)
+	}
 
 	return users, nil
 }
