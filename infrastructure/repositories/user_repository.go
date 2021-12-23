@@ -105,7 +105,7 @@ func (ur *UserRepository) CreateUser(prototype entities.UserPrototype) (entities
 		addressModels = append(addressModels, models.CreateAddressModelFromPrototype(addressPrototype, userId))
 	}
 
-	_, err = tx.NamedExecContext(context.TODO(), sql.InsertAddress, addressModels)
+	_, err = tx.NamedExecContext(context.TODO(), sql.InsertAddresses, addressModels)
 
 	// Finish transaction
 	if err = tx.Commit(); err != nil {
@@ -147,7 +147,7 @@ func (ur *UserRepository) UpdateUser(user entities.User) (entities.User, error) 
 func (ur *UserRepository) DeleteUser(id int64) error {
 	_, err := ur.db.ExecContext(context.Background(), sql.DeleteUser, id)
 	if err != nil {
-		log.Printf("Error updating user: %v", err.Error())
+		log.Printf("Error deleting user: %v", err.Error())
 		return err
 	}
 

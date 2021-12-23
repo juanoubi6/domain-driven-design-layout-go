@@ -13,6 +13,21 @@ type AddressModel struct {
 	City   sql.NullString `db:"city"`
 }
 
+func (am *AddressModel) ToAddress() entities.Address {
+	var city *string = nil
+	if am.City.Valid {
+		city = &am.City.String
+	}
+
+	return entities.Address{
+		ID:     am.ID,
+		UserID: am.UserID,
+		Street: am.Street,
+		Number: am.Number,
+		City:   city,
+	}
+}
+
 func CreateAddressModelFromPrototype(prototype entities.AddressPrototype, userId int64) AddressModel {
 	var addressModel AddressModel
 
