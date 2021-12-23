@@ -1,4 +1,4 @@
-package users
+package addresses
 
 import (
 	"domain-driven-design-layout/domain/entities"

@@ -5,12 +5,18 @@ import (
 )
 
 type HttpHandlers struct {
-	HealthHandler *HealthHandler
-	UserHandlers  *UserHandlers
+	HealthHandler   *HealthHandler
+	UserHandlers    *UserHandlers
+	AddressHandlers *AddressHandlers
 }
 
 func CreateHttpHandlers(actions *builder.Actions) (*HttpHandlers, error) {
 	userHandlers, err := NewUserHandlers(actions)
+	if err != nil {
+		return nil, err
+	}
+
+	addressHandlers, err := NewAddressHandlers(actions)
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +27,8 @@ func CreateHttpHandlers(actions *builder.Actions) (*HttpHandlers, error) {
 	}
 
 	return &HttpHandlers{
-		HealthHandler: healthHandler,
-		UserHandlers:  userHandlers,
+		HealthHandler:   healthHandler,
+		UserHandlers:    userHandlers,
+		AddressHandlers: addressHandlers,
 	}, nil
 }

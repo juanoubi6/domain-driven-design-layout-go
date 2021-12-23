@@ -42,9 +42,15 @@ func (w *WebServer) setMiddleware() {
 func (w *WebServer) setHandlers() {
 	router := w.engine.Group(basePath)
 	router.GET("health", w.health.Status)
+
+	// User routes
 	router.POST("/users", w.handlers.UserHandlers.CreateUser)
 	router.POST("/users/list", w.handlers.UserHandlers.FindUsersByIdList)
 	router.GET("/users/:id", w.handlers.UserHandlers.FindUserById)
 	router.PUT("/users", w.handlers.UserHandlers.UpdateUser)
 	router.DELETE("/users/:id", w.handlers.UserHandlers.DeleteUser)
+
+	// Address routes
+	router.POST("/users/:userID/addresses", w.handlers.AddressHandlers.CreateAddress)
+	router.DELETE("/users/:userID/addresses/:addressID", w.handlers.AddressHandlers.DeleteAddress)
 }

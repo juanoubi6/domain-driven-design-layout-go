@@ -7,7 +7,8 @@ import (
 )
 
 type Repositories struct {
-	UserRepository entities.UserRepository
+	UserRepository    entities.UserRepository
+	AddressRepository entities.AddressRepository
 }
 
 func CreateRepositories(config config.RepositoriesConfig) (*Repositories, error) {
@@ -16,7 +17,13 @@ func CreateRepositories(config config.RepositoriesConfig) (*Repositories, error)
 		return nil, err
 	}
 
+	addressRepository, err := repositories.NewAddressRepository(config.SQLConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Repositories{
-		UserRepository: userRepository,
+		UserRepository:    userRepository,
+		AddressRepository: addressRepository,
 	}, nil
 }
