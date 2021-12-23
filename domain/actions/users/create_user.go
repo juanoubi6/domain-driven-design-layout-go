@@ -2,6 +2,7 @@ package users
 
 import (
 	"domain-driven-design-layout/domain/entities"
+	"fmt"
 )
 
 type CreateUser interface {
@@ -25,7 +26,7 @@ func (act *CreateUserAction) Execute(prototype entities.UserPrototype) (entities
 	var user entities.User
 	user, err := act.userRepository.CreateUser(prototype)
 	if err != nil {
-		return user, err
+		return user, fmt.Errorf("user could not be created. Error: %v", err)
 	}
 
 	return user, nil

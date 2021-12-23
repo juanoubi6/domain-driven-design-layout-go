@@ -2,6 +2,7 @@ package users
 
 import (
 	"domain-driven-design-layout/domain/entities"
+	"fmt"
 )
 
 type DeleteUser interface {
@@ -23,7 +24,7 @@ func NewDeleteUserAction(repository entities.UserRepository) (DeleteUser, error)
 func (act *DeleteUserAction) Execute(id int64) error {
 	//Execute any business logic or validations you need
 	if err := act.userRepository.DeleteUser(id); err != nil {
-		return err
+		return fmt.Errorf("user could not be deleted. Error: %v", err)
 	}
 
 	return nil

@@ -7,3 +7,8 @@ type UserRepository interface {
 	UpdateUser(User) (User, error)
 	DeleteUser(int64) error
 }
+
+type AddressRepository interface {
+	CreateAddress(int64, AddressPrototype) (Address, error)
+	DeleteAddress(int64) error
+}

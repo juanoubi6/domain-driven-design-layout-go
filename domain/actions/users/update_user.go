@@ -2,6 +2,7 @@ package users
 
 import (
 	"domain-driven-design-layout/domain/entities"
+	"fmt"
 )
 
 type UpdateUser interface {
@@ -24,7 +25,7 @@ func (act *UpdateUserAction) Execute(user entities.User) (entities.User, error) 
 	//Execute any business logic or validations you need
 	user, err := act.userRepository.UpdateUser(user)
 	if err != nil {
-		return user, err
+		return user, fmt.Errorf("user could not be updated. Error: %v", err)
 	}
 
 	return user, nil

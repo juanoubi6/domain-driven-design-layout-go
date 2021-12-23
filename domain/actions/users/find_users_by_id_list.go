@@ -2,6 +2,7 @@ package users
 
 import (
 	"domain-driven-design-layout/domain/entities"
+	"fmt"
 )
 
 type FindUsersByIdList interface {
@@ -25,7 +26,7 @@ func (act *FindUsersByIdListAction) Execute(ids []int64) ([]entities.User, error
 	var users []entities.User
 	users, err := act.userRepository.GetUsers(ids)
 	if err != nil {
-		return users, err
+		return users, fmt.Errorf("users could not be found. Error: %v", err)
 	}
 
 	return users, nil
