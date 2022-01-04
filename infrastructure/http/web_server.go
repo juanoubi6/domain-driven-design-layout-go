@@ -41,9 +41,11 @@ func (w *WebServer) setMiddleware() {
 }
 
 func (w *WebServer) setHandlers() {
+	// Define metrics handler
+	w.engine.GET("/metrics", w.handlers.MetricsHandler.Metrics)
+
 	router := w.engine.Group(basePath)
 	router.GET("/health", w.health.Status)
-	router.GET("/metrics", w.handlers.MetricsHandler.Metrics)
 
 	// User routes
 	router.POST("/users", w.handlers.UserHandlers.CreateUser)
