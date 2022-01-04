@@ -3,24 +3,26 @@ package repositories
 import (
 	"context"
 	"domain-driven-design-layout/domain/entities"
-	"domain-driven-design-layout/infrastructure/config"
 	"domain-driven-design-layout/infrastructure/repositories/sql"
 	"domain-driven-design-layout/infrastructure/repositories/sql/models"
 	"errors"
 	"github.com/jmoiron/sqlx"
 	"log"
+	"time"
 )
 
 type UserRepository struct {
 	db *sqlx.DB
 }
 
-func NewUserRepository(config config.SQLConfig) (*UserRepository, error) {
-	return &UserRepository{db: sql.CreateDatabaseConnection(config)}, nil
+func NewUserRepository(db *sqlx.DB) (*UserRepository, error) {
+	return &UserRepository{db: db}, nil
 }
 
 func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
 	var user entities.User
+
+	start := time.Now()
 
 	rows, err := ur.db.QueryxContext(context.TODO(), sql.GetUserWithAddressesById, id)
 	if err != nil {
@@ -28,6 +30,8 @@ func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
 		return nil, err
 	}
 	defer rows.Close()
+
+	sql.QueryTimeHistogram.WithLabelValues("GetUserWithAddressesById").Observe(time.Since(start).Seconds())
 
 	for rows.Next() {
 		var address entities.Address
@@ -50,12 +54,17 @@ func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
 func (ur *UserRepository) GetUsers(ids []int64) ([]entities.User, error) {
 	query, args, err := sqlx.In(sql.GetUsersWithAddressesByIds, ids)
 	query = ur.db.Rebind(query)
+
+	start := time.Now()
+
 	rows, err := ur.db.QueryxContext(context.TODO(), query, args...)
 	if err != nil {
 		log.Printf("Error retrieving users of ids %v: %v", ids, err.Error())
 		return nil, err
 	}
 	defer rows.Close()
+
+	sql.QueryTimeHistogram.WithLabelValues("GetUsersWithAddressesByIds").Observe(time.Since(start).Seconds())
 
 	var userMap = make(map[int64]entities.User)
 

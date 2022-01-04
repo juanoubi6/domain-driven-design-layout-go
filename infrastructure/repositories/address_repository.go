@@ -3,7 +3,6 @@ package repositories
 import (
 	"context"
 	"domain-driven-design-layout/domain/entities"
-	"domain-driven-design-layout/infrastructure/config"
 	"domain-driven-design-layout/infrastructure/repositories/sql"
 	"domain-driven-design-layout/infrastructure/repositories/sql/models"
 	"github.com/jmoiron/sqlx"
@@ -14,8 +13,8 @@ type AddressRepository struct {
 	db *sqlx.DB
 }
 
-func NewAddressRepository(config config.SQLConfig) (*AddressRepository, error) {
-	return &AddressRepository{db: sql.CreateDatabaseConnection(config)}, nil
+func NewAddressRepository(db *sqlx.DB) (*AddressRepository, error) {
+	return &AddressRepository{db: db}, nil
 }
 
 func (ur *AddressRepository) CreateAddress(userID int64, prototype entities.AddressPrototype) (entities.Address, error) {
