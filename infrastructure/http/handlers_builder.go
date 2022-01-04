@@ -8,6 +8,7 @@ type HttpHandlers struct {
 	HealthHandler   *HealthHandler
 	UserHandlers    *UserHandlers
 	AddressHandlers *AddressHandlers
+	MetricsHandler  *MetricsHandler
 }
 
 func CreateHttpHandlers(actions *builder.Actions) (*HttpHandlers, error) {
@@ -26,9 +27,15 @@ func CreateHttpHandlers(actions *builder.Actions) (*HttpHandlers, error) {
 		return nil, err
 	}
 
+	metricsHandler, err := NewMetricsHandler()
+	if err != nil {
+		return nil, err
+	}
+
 	return &HttpHandlers{
 		HealthHandler:   healthHandler,
 		UserHandlers:    userHandlers,
 		AddressHandlers: addressHandlers,
+		MetricsHandler:  metricsHandler,
 	}, nil
 }

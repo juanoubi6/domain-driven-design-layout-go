@@ -41,7 +41,8 @@ func (w *WebServer) setMiddleware() {
 
 func (w *WebServer) setHandlers() {
 	router := w.engine.Group(basePath)
-	router.GET("health", w.health.Status)
+	router.GET("/health", w.health.Status)
+	router.GET("/metrics", w.handlers.MetricsHandler.Metrics)
 
 	// User routes
 	router.POST("/users", w.handlers.UserHandlers.CreateUser)
@@ -51,6 +52,6 @@ func (w *WebServer) setHandlers() {
 	router.DELETE("/users/:id", w.handlers.UserHandlers.DeleteUser)
 
 	// Address routes
-	router.POST("/users/:userID/addresses", w.handlers.AddressHandlers.CreateAddress)
-	router.DELETE("/users/:userID/addresses/:addressID", w.handlers.AddressHandlers.DeleteAddress)
+	router.POST("/user/:userID/addresses", w.handlers.AddressHandlers.CreateAddress)
+	router.DELETE("/user/:userID/addresses/:addressID", w.handlers.AddressHandlers.DeleteAddress)
 }

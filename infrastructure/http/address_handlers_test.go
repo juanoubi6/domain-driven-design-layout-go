@@ -34,8 +34,8 @@ func (suite *AddressHandlersTestSuite) SetupTest() {
 		deleteAddressAction: mockDeleteAddressAction,
 	}
 
-	router.POST("/users-api/users/:userID/addresses", addressHandlers.CreateAddress)
-	router.DELETE("/users-api/users/:userID/addresses/:addressID", addressHandlers.DeleteAddress)
+	router.POST("/users-api/user/:userID/addresses", addressHandlers.CreateAddress)
+	router.DELETE("/users-api/user/:userID/addresses/:addressID", addressHandlers.DeleteAddress)
 
 	suite.router = router
 }
@@ -48,7 +48,7 @@ func (suite *AddressHandlersTestSuite) TestAddressHandlers_CreateAddress_Success
 	w := httptest.NewRecorder()
 
 	body, _ := json.Marshal(createAddressBodyRequest())
-	req, _ := http.NewRequest("POST", "/users-api/users/1/addresses", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("POST", "/users-api/user/1/addresses", bytes.NewBuffer(body))
 
 	expected := createAddress()
 
@@ -66,7 +66,7 @@ func (suite *AddressHandlersTestSuite) TestAddressHandlers_CreateAddress_Invalid
 	body, _ := json.Marshal(map[string]interface{}{
 		"first_name": 33,
 	})
-	req, _ := http.NewRequest("POST", "/users-api/users/1/addresses", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("POST", "/users-api/user/1/addresses", bytes.NewBuffer(body))
 
 	suite.router.ServeHTTP(w, req)
 
@@ -77,7 +77,7 @@ func (suite *AddressHandlersTestSuite) TestAddressHandlers_CreateAddress_Returns
 	w := httptest.NewRecorder()
 
 	body, _ := json.Marshal(createAddressBodyRequest())
-	req, _ := http.NewRequest("POST", "/users-api/users/1/addresses", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("POST", "/users-api/user/1/addresses", bytes.NewBuffer(body))
 
 	mockCreateAddressAction.On("Execute", int64(1), mock.Anything).Return(entities.Address{}, errors.New("error"))
 
@@ -90,7 +90,7 @@ func (suite *AddressHandlersTestSuite) TestAddressHandlers_CreateAddress_Returns
 func (suite *AddressHandlersTestSuite) TestAddressHandlers_DeleteAddress_Returns400OnActionFailure() {
 	w := httptest.NewRecorder()
 
-	req, _ := http.NewRequest("DELETE", "/users-api/users/1/addresses/10", nil)
+	req, _ := http.NewRequest("DELETE", "/users-api/user/1/addresses/10", nil)
 
 	mockDeleteAddressAction.On("Execute", int64(10)).Return(errors.New("error"))
 
@@ -103,7 +103,7 @@ func (suite *AddressHandlersTestSuite) TestAddressHandlers_DeleteAddress_Returns
 func (suite *AddressHandlersTestSuite) TestAddressHandlers_DeleteAddress_Returns200OnSuccess() {
 	w := httptest.NewRecorder()
 
-	req, _ := http.NewRequest("DELETE", "/users-api/users/1/addresses/10", nil)
+	req, _ := http.NewRequest("DELETE", "/users-api/user/1/addresses/10", nil)
 
 	mockDeleteAddressAction.On("Execute", int64(10)).Return(nil)
 
