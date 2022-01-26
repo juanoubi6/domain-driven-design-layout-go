@@ -2,20 +2,29 @@ package repositories
 
 import (
 	"domain-driven-design-layout/domain/entities"
-	"domain-driven-design-layout/infrastructure/repositories/sql/models"
+	"domain-driven-design-layout/infrastructure/repositories/sql"
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"log"
 	"testing"
 )
 
 type AddressRepositoryTestSuite struct {
 	suite.Suite
 	addressRepository *AddressRepository
+	sqlMock           sqlmock.Sqlmock
 }
 
 func (suite *AddressRepositoryTestSuite) SetupTest() {
-	suite.addressRepository = &AddressRepository{db: db}
-	generateSchema()
+	mockDb, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		log.Fatalf("An error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	suite.addressRepository = &AddressRepository{db: sqlx.NewDb(mockDb, "postgres")}
+	suite.sqlMock = mock
 }
 
 func TestAddressRepositoryTestSuite(t *testing.T) {
@@ -25,8 +34,6 @@ func TestAddressRepositoryTestSuite(t *testing.T) {
 func (suite *AddressRepositoryTestSuite) TestAddressRepository_CreateAddress_SuccessfullyReturnsCreatedAddress() {
 	var userID int64 = 1
 
-	saveUserWithAddresses(userID)
-
 	country := "Argentina"
 	prototype := entities.AddressPrototype{
 		Street: "New street 1",
@@ -34,43 +41,35 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_CreateAddress_Suc
 		City:   &country,
 	}
 
+	suite.sqlMock.ExpectQuery(sql.InsertAddress).WithArgs(userID, prototype.Street, prototype.Number, prototype.City).WillReturnRows(
+		sqlmock.NewRows([]string{"id"}).AddRow(99),
+	)
+
 	address, err := suite.addressRepository.CreateAddress(userID, prototype)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}
 
+	assert.Equal(suite.T(), int64(99), address.ID)
 	assert.Equal(suite.T(), "New street 1", address.Street)
 	assert.Equal(suite.T(), "Argentina", *address.City)
+	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
+		suite.T().Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
 func (suite *AddressRepositoryTestSuite) TestAddressRepository_DeleteAddress_SuccessfullyDeletesAddress() {
-	var userId int64 = 10
-	saveUserWithAddresses(userId)
+	var addressId int64 = 10
 
-	savedAddress := getSingleAddressFromUser(userId)
+	suite.sqlMock.ExpectExec(sql.DeleteAddress).WithArgs(addressId).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err := suite.addressRepository.DeleteAddress(savedAddress.ID)
+	err := suite.addressRepository.DeleteAddress(addressId)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}
 
 	assert.Nil(suite.T(), err)
-
-	deletedAddress := getAddressById(savedAddress.ID)
-
-	assert.Equal(suite.T(), int64(0), deletedAddress.ID)
-}
-
-func getSingleAddressFromUser(userId int64) models.AddressModel {
-	addressModel := models.AddressModel{}
-	_ = db.Get(&addressModel, "SELECT * FROM addresses WHERE user_id=$1 LIMIT 1", userId)
-
-	return addressModel
-}
-
-func getAddressById(addressId int64) models.AddressModel {
-	addressModel := models.AddressModel{}
-	_ = db.Get(&addressModel, "SELECT * FROM addresses WHERE id=$1", addressId)
-
-	return addressModel
+	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
+		suite.T().Errorf("there were unfulfilled expectations: %s", err)
+	}
 }

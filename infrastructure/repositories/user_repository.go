@@ -115,6 +115,11 @@ func (ur *UserRepository) CreateUser(prototype entities.UserPrototype) (entities
 	}
 
 	_, err = tx.NamedExecContext(context.TODO(), sql.InsertAddresses, addressModels)
+	if err != nil {
+		tx.Rollback()
+		log.Printf("Error when trying to insert addresses: %v", err.Error())
+		return entities.User{}, err
+	}
 
 	// Finish transaction
 	if err = tx.Commit(); err != nil {
