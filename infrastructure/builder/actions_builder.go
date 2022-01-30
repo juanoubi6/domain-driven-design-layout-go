@@ -13,6 +13,7 @@ type Actions struct {
 	DeleteUser        users.DeleteUser
 	CreateAddress     addresses.CreateAddress
 	DeleteAddress     addresses.DeleteAddress
+	FindAddressById   addresses.FindAddressById
 }
 
 func CreateActions(repositories *Repositories) (*Actions, error) {
@@ -51,6 +52,11 @@ func CreateActions(repositories *Repositories) (*Actions, error) {
 		return nil, err
 	}
 
+	findAddressById, err := addresses.NewFindAddressByIdAction(repositories.AddressRepository)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Actions{
 		CreateUser:        createUser,
 		FindUserById:      findUserById,
@@ -59,5 +65,6 @@ func CreateActions(repositories *Repositories) (*Actions, error) {
 		DeleteUser:        deleteUser,
 		CreateAddress:     createAddress,
 		DeleteAddress:     deleteAddress,
+		FindAddressById:   findAddressById,
 	}, nil
 }

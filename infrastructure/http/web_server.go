@@ -55,6 +55,7 @@ func (w *WebServer) setHandlers() {
 	router.DELETE("/users/:id", w.handlers.UserHandlers.DeleteUser)
 
 	// Address routes
+	router.GET("/addresses/:addressID", w.handlers.AddressHandlers.FindAddressById)
 	router.POST("/user/:userID/addresses", w.handlers.AddressHandlers.CreateAddress)
 	router.DELETE("/user/:userID/addresses/:addressID", w.handlers.AddressHandlers.DeleteAddress)
 }

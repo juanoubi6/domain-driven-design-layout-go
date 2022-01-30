@@ -10,34 +10,41 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-var mockCreateAddressAction = new(domain.CreateAddressMock)
-var mockDeleteAddressAction = new(domain.DeleteAddressMock)
-
 type AddressHandlersTestSuite struct {
 	suite.Suite
-	router *gin.Engine
+	router                    *gin.Engine
+	mockCreateAddressAction   *domain.CreateAddressMock
+	mockDeleteAddressAction   *domain.DeleteAddressMock
+	mockFindAddressByIdAction *domain.FindAddressByIdMock
 }
 
 func (suite *AddressHandlersTestSuite) SetupTest() {
-	mockCreateAddressAction = new(domain.CreateAddressMock)
-	mockDeleteAddressAction = new(domain.DeleteAddressMock)
+	mockCreateAddressAction := new(domain.CreateAddressMock)
+	mockDeleteAddressAction := new(domain.DeleteAddressMock)
+	mockFindAddressByIdAction := new(domain.FindAddressByIdMock)
 
 	router := gin.New()
 
 	addressHandlers := &AddressHandlers{
 		createAddressAction: mockCreateAddressAction,
 		deleteAddressAction: mockDeleteAddressAction,
+		findAddressById:     mockFindAddressByIdAction,
 	}
 
+	router.GET("/users-api/addresses/:addressID", addressHandlers.FindAddressById)
 	router.POST("/users-api/user/:userID/addresses", addressHandlers.CreateAddress)
 	router.DELETE("/users-api/user/:userID/addresses/:addressID", addressHandlers.DeleteAddress)
 
 	suite.router = router
+	suite.mockCreateAddressAction = mockCreateAddressAction
+	suite.mockDeleteAddressAction = mockDeleteAddressAction
+	suite.mockFindAddressByIdAction = mockFindAddressByIdAction
 }
 
 func TestAddressHandlersTestSuite(t *testing.T) {
@@ -52,12 +59,12 @@ func (suite *AddressHandlersTestSuite) TestAddressHandlers_CreateAddress_Success
 
 	expected := createAddress()
 
-	mockCreateAddressAction.On("Execute", int64(1), mock.Anything).Return(expected, nil)
+	suite.mockCreateAddressAction.On("Execute", int64(1), mock.Anything).Return(expected, nil)
 
 	suite.router.ServeHTTP(w, req)
 
 	assert.Equal(suite.T(), 201, w.Code)
-	mockCreateAddressAction.AssertExpectations(suite.T())
+	suite.mockCreateAddressAction.AssertExpectations(suite.T())
 }
 
 func (suite *AddressHandlersTestSuite) TestAddressHandlers_CreateAddress_InvalidBodyReturns400() {
@@ -79,12 +86,12 @@ func (suite *AddressHandlersTestSuite) TestAddressHandlers_CreateAddress_Returns
 	body, _ := json.Marshal(createAddressBodyRequest())
 	req, _ := http.NewRequest("POST", "/users-api/user/1/addresses", bytes.NewBuffer(body))
 
-	mockCreateAddressAction.On("Execute", int64(1), mock.Anything).Return(entities.Address{}, errors.New("error"))
+	suite.mockCreateAddressAction.On("Execute", int64(1), mock.Anything).Return(entities.Address{}, errors.New("error"))
 
 	suite.router.ServeHTTP(w, req)
 
 	assert.Equal(suite.T(), 400, w.Code)
-	mockCreateAddressAction.AssertExpectations(suite.T())
+	suite.mockCreateAddressAction.AssertExpectations(suite.T())
 }
 
 func (suite *AddressHandlersTestSuite) TestAddressHandlers_DeleteAddress_Returns400OnActionFailure() {
@@ -92,12 +99,12 @@ func (suite *AddressHandlersTestSuite) TestAddressHandlers_DeleteAddress_Returns
 
 	req, _ := http.NewRequest("DELETE", "/users-api/user/1/addresses/10", nil)
 
-	mockDeleteAddressAction.On("Execute", int64(10)).Return(errors.New("error"))
+	suite.mockDeleteAddressAction.On("Execute", int64(10)).Return(errors.New("error"))
 
 	suite.router.ServeHTTP(w, req)
 
 	assert.Equal(suite.T(), 400, w.Code)
-	mockDeleteAddressAction.AssertExpectations(suite.T())
+	suite.mockDeleteAddressAction.AssertExpectations(suite.T())
 }
 
 func (suite *AddressHandlersTestSuite) TestAddressHandlers_DeleteAddress_Returns200OnSuccess() {
@@ -105,12 +112,65 @@ func (suite *AddressHandlersTestSuite) TestAddressHandlers_DeleteAddress_Returns
 
 	req, _ := http.NewRequest("DELETE", "/users-api/user/1/addresses/10", nil)
 
-	mockDeleteAddressAction.On("Execute", int64(10)).Return(nil)
+	suite.mockDeleteAddressAction.On("Execute", int64(10)).Return(nil)
 
 	suite.router.ServeHTTP(w, req)
 
 	assert.Equal(suite.T(), 200, w.Code)
-	mockDeleteAddressAction.AssertExpectations(suite.T())
+	suite.mockDeleteAddressAction.AssertExpectations(suite.T())
+}
+
+func (suite *AddressHandlersTestSuite) TestAddressHandlers_FindAddressById_Returns200OnSuccess() {
+	w := httptest.NewRecorder()
+
+	req, _ := http.NewRequest("GET", "/users-api/addresses/1", nil)
+
+	expected := createAddress()
+
+	suite.mockFindAddressByIdAction.On("Execute", int64(1)).Return(&expected, nil)
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 200, w.Code)
+	suite.mockFindAddressByIdAction.AssertExpectations(suite.T())
+
+	responseBody, err := io.ReadAll(w.Body)
+	if err != nil {
+		suite.T().FailNow()
+	}
+
+	var addressResponse entities.Address
+	if err = json.Unmarshal(responseBody, &addressResponse); err != nil {
+		suite.T().FailNow()
+	}
+
+	assert.Equal(suite.T(), expected.ID, addressResponse.ID)
+}
+
+func (suite *AddressHandlersTestSuite) TestAddressHandlers_FindAddressById_Returns404WhenAddressCouldNotBeFound() {
+	w := httptest.NewRecorder()
+
+	req, _ := http.NewRequest("GET", "/users-api/addresses/1", nil)
+
+	suite.mockFindAddressByIdAction.On("Execute", int64(1)).Return(nil, nil)
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 404, w.Code)
+	suite.mockFindAddressByIdAction.AssertExpectations(suite.T())
+}
+
+func (suite *AddressHandlersTestSuite) TestAddressHandlers_FindAddressById_Returns400OnActionFailure() {
+	w := httptest.NewRecorder()
+
+	req, _ := http.NewRequest("GET", "/users-api/addresses/1", nil)
+
+	suite.mockFindAddressByIdAction.On("Execute", int64(1)).Return(nil, errors.New("error"))
+
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 400, w.Code)
+	suite.mockFindAddressByIdAction.AssertExpectations(suite.T())
 }
 
 func createAddressBodyRequest() map[string]interface{} {

@@ -11,4 +11,5 @@ type UserRepository interface {
 type AddressRepository interface {
 	CreateAddress(int64, AddressPrototype) (Address, error)
 	DeleteAddress(int64) error
+	GetAddress(int64) (*Address, error)
 }

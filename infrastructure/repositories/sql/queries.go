@@ -43,3 +43,14 @@ const UpdateUser = "UPDATE users SET first_name=$1, last_name=$2, birth_date=$3 
 const DeleteUser = "DELETE FROM users WHERE id = $1"
 
 const DeleteAddress = "DELETE FROM addresses WHERE id = $1"
+
+const GetAddressById = `
+	SELECT
+		a.id, 
+		a.user_id, 
+		a.street, 
+		a.number, 
+		a.city
+	FROM addresses a
+	WHERE a.id=$1
+`

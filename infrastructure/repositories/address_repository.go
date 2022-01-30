@@ -2,11 +2,13 @@ package repositories
 
 import (
 	"context"
+	sql2 "database/sql"
 	"domain-driven-design-layout/domain/entities"
 	"domain-driven-design-layout/infrastructure/repositories/sql"
 	"domain-driven-design-layout/infrastructure/repositories/sql/models"
 	"github.com/jmoiron/sqlx"
 	"log"
+	"time"
 )
 
 type AddressRepository struct {
@@ -40,4 +42,27 @@ func (ur *AddressRepository) DeleteAddress(id int64) error {
 	}
 
 	return nil
+}
+
+func (ur *AddressRepository) GetAddress(id int64) (*entities.Address, error) {
+	var address entities.Address
+	var addressModel models.AddressModel
+
+	start := time.Now()
+
+	err := ur.db.QueryRowxContext(context.TODO(), sql.GetAddressById, id).StructScan(&addressModel)
+	if err != nil {
+		if err == sql2.ErrNoRows {
+			return nil, nil
+		}
+
+		log.Printf("Error retrieving address of id %v: %v", id, err.Error())
+		return nil, err
+	}
+
+	sql.QueryTimeHistogram.WithLabelValues("GetAddress").Observe(time.Since(start).Seconds())
+
+	address = addressModel.ToAddress()
+
+	return &address, nil
 }

@@ -12,12 +12,14 @@ import (
 type AddressHandlers struct {
 	createAddressAction addresses.CreateAddress
 	deleteAddressAction addresses.DeleteAddress
+	findAddressById     addresses.FindAddressById
 }
 
 func NewAddressHandlers(actions *builder.Actions) (*AddressHandlers, error) {
 	return &AddressHandlers{
 		createAddressAction: actions.CreateAddress,
 		deleteAddressAction: actions.DeleteAddress,
+		findAddressById:     actions.FindAddressById,
 	}, nil
 }
 
@@ -56,4 +58,25 @@ func (r *AddressHandlers) DeleteAddress(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func (r *AddressHandlers) FindAddressById(c *gin.Context) {
+	addressId, err := strconv.Atoi(c.Param("addressID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid address id value in URL"})
+		return
+	}
+
+	address, err := r.findAddressById.Execute(int64(addressId))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if address == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "address does not exist"})
+		return
+	}
+
+	c.JSON(http.StatusOK, address)
 }

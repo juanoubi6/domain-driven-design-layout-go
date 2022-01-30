@@ -73,3 +73,26 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_DeleteAddress_Suc
 		suite.T().Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
+
+func (suite *AddressRepositoryTestSuite) TestAddressRepository_GetAddress_SuccessfullyReturnsAddress() {
+	addressId := int64(15)
+
+	suite.sqlMock.ExpectQuery(sql.GetAddressById).WithArgs(addressId).WillReturnRows(
+		sqlmock.NewRows(
+			[]string{"id", "user_id", "street", "number", "city"},
+		).AddRow(
+			addressId, 1, "Some street", 1, nil,
+		),
+	)
+
+	address, err := suite.addressRepository.GetAddress(addressId)
+	if err != nil {
+		assert.FailNow(suite.T(), err.Error())
+	}
+
+	assert.Equal(suite.T(), addressId, address.ID)
+	assert.Nil(suite.T(), address.City)
+	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
+		suite.T().Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
