@@ -1,4 +1,4 @@
-package repositories
+package sql
 
 import (
 	"context"
@@ -10,6 +10,10 @@ import (
 type QueryExecutor struct {
 	db *sqlx.DB
 	tx *sqlx.Tx
+}
+
+func CreateQueryExecutor(db *sqlx.DB, tx *sqlx.Tx) *QueryExecutor {
+	return &QueryExecutor{db: db, tx: tx}
 }
 
 func (qe *QueryExecutor) Exec(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {

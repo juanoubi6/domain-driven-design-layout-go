@@ -16,7 +16,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	actions, err := builder.CreateActions(repositories)
+	txRepositoryFactory := builder.CreateTxRepositoryFactory(appConfig.RepositoriesConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	actions, err := builder.CreateActions(repositories, txRepositoryFactory)
 	if err != nil {
 		log.Fatal(err)
 	}

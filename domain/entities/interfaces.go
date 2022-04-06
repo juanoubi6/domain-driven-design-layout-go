@@ -14,3 +14,12 @@ type AddressRepository interface {
 	GetAddress(addressID int64) (*Address, error)
 	DeleteUserAddresses(userID int64) error
 }
+
+type MainDatabase interface {
+	UserRepository
+	AddressRepository
+}
+
+type TxRepositoryCreator interface {
+	CreateMainDatabase() (MainDatabase, error)
+}

@@ -3,6 +3,7 @@ package builder
 import (
 	"domain-driven-design-layout/domain/actions/addresses"
 	"domain-driven-design-layout/domain/actions/users"
+	"domain-driven-design-layout/domain/entities"
 )
 
 type Actions struct {
@@ -16,7 +17,7 @@ type Actions struct {
 	FindAddressById   addresses.FindAddressById
 }
 
-func CreateActions(repositories *Repositories) (*Actions, error) {
+func CreateActions(repositories *Repositories, txRepositoryCreator entities.TxRepositoryCreator) (*Actions, error) {
 	createUser, err := users.NewCreateUserAction(repositories.UserRepository)
 	if err != nil {
 		return nil, err

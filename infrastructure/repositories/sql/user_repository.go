@@ -1,9 +1,8 @@
-package repositories
+package sql
 
 import (
 	"context"
 	"domain-driven-design-layout/domain/entities"
-	"domain-driven-design-layout/infrastructure/repositories/sql"
 	"domain-driven-design-layout/infrastructure/repositories/sql/models"
 	"errors"
 	"github.com/jmoiron/sqlx"
@@ -11,27 +10,19 @@ import (
 	"time"
 )
 
-type UserRepository struct {
-	queryExecutor QueryExecutor
-}
-
-func NewUserRepository(db *sqlx.DB) (*UserRepository, error) {
-	return &UserRepository{queryExecutor: QueryExecutor{db: db, tx: nil}}, nil
-}
-
-func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
+func (qe *QueryExecutor) GetUser(id int64) (*entities.User, error) {
 	var user entities.User
 
 	start := time.Now()
 
-	rows, err := ur.queryExecutor.db.QueryxContext(context.TODO(), sql.GetUserWithAddressesById, id)
+	rows, err := qe.db.QueryxContext(context.TODO(), GetUserWithAddressesById, id)
 	if err != nil {
 		log.Printf("Error retrieving user of id %v: %v", id, err.Error())
 		return nil, err
 	}
 	defer rows.Close()
 
-	sql.QueryTimeHistogram.WithLabelValues("GetUserWithAddressesById").Observe(time.Since(start).Seconds())
+	QueryTimeHistogram.WithLabelValues("GetUserWithAddressesById").Observe(time.Since(start).Seconds())
 
 	for rows.Next() {
 		var address entities.Address
@@ -51,20 +42,20 @@ func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
 	return &user, nil
 }
 
-func (ur *UserRepository) GetUsers(ids []int64) ([]entities.User, error) {
-	query, args, err := sqlx.In(sql.GetUsersWithAddressesByIds, ids)
-	query = ur.queryExecutor.db.Rebind(query)
+func (qe *QueryExecutor) GetUsers(ids []int64) ([]entities.User, error) {
+	query, args, err := sqlx.In(GetUsersWithAddressesByIds, ids)
+	query = qe.db.Rebind(query)
 
 	start := time.Now()
 
-	rows, err := ur.queryExecutor.db.QueryxContext(context.TODO(), query, args...)
+	rows, err := qe.db.QueryxContext(context.TODO(), query, args...)
 	if err != nil {
 		log.Printf("Error retrieving users of ids %v: %v", ids, err.Error())
 		return nil, err
 	}
 	defer rows.Close()
 
-	sql.QueryTimeHistogram.WithLabelValues("GetUsersWithAddressesByIds").Observe(time.Since(start).Seconds())
+	QueryTimeHistogram.WithLabelValues("GetUsersWithAddressesByIds").Observe(time.Since(start).Seconds())
 
 	var userMap = make(map[int64]entities.User)
 
@@ -94,16 +85,16 @@ func (ur *UserRepository) GetUsers(ids []int64) ([]entities.User, error) {
 	return users, nil
 }
 
-func (ur *UserRepository) CreateUser(prototype entities.UserPrototype) (entities.User, error) {
+func (qe *QueryExecutor) CreateUser(prototype entities.UserPrototype) (entities.User, error) {
 	// Start transaction to insert the user and it's addresses
-	tx, err := ur.queryExecutor.db.Beginx()
+	tx, err := qe.db.Beginx()
 	if err != nil {
 		log.Printf("Error creating transaction: %v", err.Error())
 		return entities.User{}, err
 	}
 
 	var userId int64
-	err = tx.QueryRowContext(context.Background(), sql.InsertUser, prototype.FirstName, prototype.LastName, prototype.BirthDate).Scan(&userId)
+	err = tx.QueryRowContext(context.Background(), InsertUser, prototype.FirstName, prototype.LastName, prototype.BirthDate).Scan(&userId)
 	if err != nil {
 		log.Printf("Error creating user: %v", err.Error())
 		return entities.User{}, err
@@ -114,7 +105,7 @@ func (ur *UserRepository) CreateUser(prototype entities.UserPrototype) (entities
 		addressModels = append(addressModels, models.CreateAddressModelFromPrototype(addressPrototype, userId))
 	}
 
-	_, err = tx.NamedExecContext(context.TODO(), sql.InsertAddresses, addressModels)
+	_, err = tx.NamedExecContext(context.TODO(), InsertAddresses, addressModels)
 	if err != nil {
 		tx.Rollback()
 		log.Printf("Error when trying to insert addresses: %v", err.Error())
@@ -127,7 +118,7 @@ func (ur *UserRepository) CreateUser(prototype entities.UserPrototype) (entities
 		return entities.User{}, err
 	}
 
-	createdUser, err := ur.GetUser(userId)
+	createdUser, err := qe.GetUser(userId)
 	if err != nil {
 		log.Printf("Error retrieving created user: %v", err.Error())
 		return entities.User{}, err
@@ -136,8 +127,8 @@ func (ur *UserRepository) CreateUser(prototype entities.UserPrototype) (entities
 	return *createdUser, nil
 }
 
-func (ur *UserRepository) UpdateUser(user entities.User) (entities.User, error) {
-	originalUser, err := ur.GetUser(user.ID)
+func (qe *QueryExecutor) UpdateUser(user entities.User) (entities.User, error) {
+	originalUser, err := qe.GetUser(user.ID)
 	if err != nil {
 		return user, err
 	}
@@ -149,7 +140,7 @@ func (ur *UserRepository) UpdateUser(user entities.User) (entities.User, error) 
 	originalUser.LastName = user.LastName
 	originalUser.BirthDate = user.BirthDate
 
-	_, err = ur.queryExecutor.Exec(context.Background(), sql.UpdateUser, originalUser.FirstName, originalUser.LastName, originalUser.BirthDate, originalUser.ID)
+	_, err = qe.Exec(context.Background(), UpdateUser, originalUser.FirstName, originalUser.LastName, originalUser.BirthDate, originalUser.ID)
 	if err != nil {
 		log.Printf("Error updating user: %v", err.Error())
 		return user, err
@@ -158,8 +149,8 @@ func (ur *UserRepository) UpdateUser(user entities.User) (entities.User, error) 
 	return *originalUser, nil
 }
 
-func (ur *UserRepository) DeleteUser(id int64) error {
-	_, err := ur.queryExecutor.Exec(context.Background(), sql.DeleteUser, id)
+func (qe *QueryExecutor) DeleteUser(id int64) error {
+	_, err := qe.Exec(context.Background(), DeleteUser, id)
 	if err != nil {
 		log.Printf("Error deleting user: %v", err.Error())
 		return err

@@ -1,8 +1,7 @@
-package repositories
+package sql
 
 import (
 	"domain-driven-design-layout/domain/entities"
-	"domain-driven-design-layout/infrastructure/repositories/sql"
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
@@ -15,7 +14,7 @@ import (
 
 type UserRepositoryTestSuite struct {
 	suite.Suite
-	userRepository *UserRepository
+	userRepository *QueryExecutor
 	sqlMock        sqlmock.Sqlmock
 }
 
@@ -25,7 +24,7 @@ func (suite *UserRepositoryTestSuite) SetupTest() {
 		log.Fatalf("An error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	suite.userRepository = &UserRepository{queryExecutor: QueryExecutor{db: sqlx.NewDb(mockDb, "postgres"), tx: nil}}
+	suite.userRepository = &QueryExecutor{db: sqlx.NewDb(mockDb, "postgres"), tx: nil}
 	suite.sqlMock = mock
 }
 
@@ -56,7 +55,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_CreateUser_Successfully
 	expectedAddressInsertQuery := `INSERT INTO addresses (user_id, street, number, city) VALUES ($1, $2, $3, $4),($5, $6, $7, $8)`
 
 	suite.sqlMock.ExpectBegin()
-	suite.sqlMock.ExpectQuery(sql.InsertUser).WithArgs(prototype.FirstName, prototype.LastName, prototype.BirthDate).WillReturnRows(
+	suite.sqlMock.ExpectQuery(InsertUser).WithArgs(prototype.FirstName, prototype.LastName, prototype.BirthDate).WillReturnRows(
 		sqlmock.NewRows([]string{"id"}).AddRow(99),
 	)
 	suite.sqlMock.ExpectExec(expectedAddressInsertQuery).WithArgs(
@@ -72,7 +71,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_CreateUser_Successfully
 		sqlmock.NewResult(0, 2),
 	)
 	suite.sqlMock.ExpectCommit()
-	suite.sqlMock.ExpectQuery(sql.GetUserWithAddressesById).WithArgs(99).WillReturnRows(
+	suite.sqlMock.ExpectQuery(GetUserWithAddressesById).WithArgs(99).WillReturnRows(
 		sqlmock.NewRows(
 			[]string{"id", "first_name", "last_name", "birth_date", "id", "user_id", "street", "number", "city"},
 		).AddRow(
@@ -118,7 +117,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_CreateUser_RollbacksTra
 	expectedAddressInsertQuery := `INSERT INTO addresses (user_id, street, number, city) VALUES ($1, $2, $3, $4),($5, $6, $7, $8)`
 
 	suite.sqlMock.ExpectBegin()
-	suite.sqlMock.ExpectQuery(sql.InsertUser).WithArgs(prototype.FirstName, prototype.LastName, prototype.BirthDate).WillReturnRows(
+	suite.sqlMock.ExpectQuery(InsertUser).WithArgs(prototype.FirstName, prototype.LastName, prototype.BirthDate).WillReturnRows(
 		sqlmock.NewRows([]string{"id"}).AddRow(99),
 	)
 	suite.sqlMock.ExpectExec(expectedAddressInsertQuery).WithArgs(
@@ -148,7 +147,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_CreateUser_RollbacksTra
 func (suite *UserRepositoryTestSuite) TestUserRepository_GetUser_SuccessfullyReturnsUser() {
 	var userId int64 = 10
 
-	suite.sqlMock.ExpectQuery(sql.GetUserWithAddressesById).WithArgs(userId).WillReturnRows(
+	suite.sqlMock.ExpectQuery(GetUserWithAddressesById).WithArgs(userId).WillReturnRows(
 		sqlmock.NewRows(
 			[]string{"id", "first_name", "last_name", "birth_date", "id", "user_id", "street", "number", "city"},
 		).AddRow(
@@ -176,7 +175,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_GetUser_SuccessfullyRet
 func (suite *UserRepositoryTestSuite) TestUserRepository_GetUser_ReturnsNilWhenUserCouldNotBeFound() {
 	var userId int64 = 999
 
-	suite.sqlMock.ExpectQuery(sql.GetUserWithAddressesById).WithArgs(userId).WillReturnRows(sqlmock.NewRows([]string{}))
+	suite.sqlMock.ExpectQuery(GetUserWithAddressesById).WithArgs(userId).WillReturnRows(sqlmock.NewRows([]string{}))
 
 	user, err := suite.userRepository.GetUser(999)
 	if err != nil {
@@ -246,7 +245,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_UpdateUser_Successfully
 		Addresses: nil,
 	}
 
-	suite.sqlMock.ExpectQuery(sql.GetUserWithAddressesById).WithArgs(userId).WillReturnRows(
+	suite.sqlMock.ExpectQuery(GetUserWithAddressesById).WithArgs(userId).WillReturnRows(
 		sqlmock.NewRows(
 			[]string{"id", "first_name", "last_name", "birth_date", "id", "user_id", "street", "number", "city"},
 		).AddRow(
@@ -255,7 +254,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_UpdateUser_Successfully
 			userId, "firstName", "lastName", time.Now(), 2, userId, "street 2", 11, nil,
 		),
 	)
-	suite.sqlMock.ExpectExec(sql.UpdateUser).WithArgs(
+	suite.sqlMock.ExpectExec(UpdateUser).WithArgs(
 		userWithUpdatedFields.FirstName,
 		userWithUpdatedFields.LastName,
 		userWithUpdatedFields.BirthDate,
@@ -278,7 +277,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_UpdateUser_Successfully
 func (suite *UserRepositoryTestSuite) TestUserRepository_DeleteUser_SuccessfullyDeletesUser() {
 	var userId int64 = 10
 
-	suite.sqlMock.ExpectExec(sql.DeleteUser).WithArgs(userId).WillReturnResult(
+	suite.sqlMock.ExpectExec(DeleteUser).WithArgs(userId).WillReturnResult(
 		sqlmock.NewResult(0, 1),
 	)
 

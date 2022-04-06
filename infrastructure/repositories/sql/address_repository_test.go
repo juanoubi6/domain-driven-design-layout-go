@@ -1,8 +1,7 @@
-package repositories
+package sql
 
 import (
 	"domain-driven-design-layout/domain/entities"
-	"domain-driven-design-layout/infrastructure/repositories/sql"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +12,7 @@ import (
 
 type AddressRepositoryTestSuite struct {
 	suite.Suite
-	addressRepository *AddressRepository
+	addressRepository *QueryExecutor
 	sqlMock           sqlmock.Sqlmock
 }
 
@@ -23,7 +22,7 @@ func (suite *AddressRepositoryTestSuite) SetupTest() {
 		log.Fatalf("An error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	suite.addressRepository = &AddressRepository{queryExecutor: QueryExecutor{db: sqlx.NewDb(mockDb, "postgres"), tx: nil}}
+	suite.addressRepository = &QueryExecutor{db: sqlx.NewDb(mockDb, "postgres"), tx: nil}
 	suite.sqlMock = mock
 }
 
@@ -41,7 +40,7 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_CreateAddress_Suc
 		City:   &country,
 	}
 
-	suite.sqlMock.ExpectQuery(sql.InsertAddress).WithArgs(userID, prototype.Street, prototype.Number, prototype.City).WillReturnRows(
+	suite.sqlMock.ExpectQuery(InsertAddress).WithArgs(userID, prototype.Street, prototype.Number, prototype.City).WillReturnRows(
 		sqlmock.NewRows([]string{"id"}).AddRow(99),
 	)
 
@@ -61,7 +60,7 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_CreateAddress_Suc
 func (suite *AddressRepositoryTestSuite) TestAddressRepository_DeleteAddress_SuccessfullyDeletesAddress() {
 	var addressId int64 = 10
 
-	suite.sqlMock.ExpectExec(sql.DeleteAddress).WithArgs(addressId).WillReturnResult(sqlmock.NewResult(0, 1))
+	suite.sqlMock.ExpectExec(DeleteAddress).WithArgs(addressId).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err := suite.addressRepository.DeleteAddress(addressId)
 	if err != nil {
@@ -77,7 +76,7 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_DeleteAddress_Suc
 func (suite *AddressRepositoryTestSuite) TestAddressRepository_GetAddress_SuccessfullyReturnsAddress() {
 	addressId := int64(15)
 
-	suite.sqlMock.ExpectQuery(sql.GetAddressById).WithArgs(addressId).WillReturnRows(
+	suite.sqlMock.ExpectQuery(GetAddressById).WithArgs(addressId).WillReturnRows(
 		sqlmock.NewRows(
 			[]string{"id", "user_id", "street", "number", "city"},
 		).AddRow(
@@ -100,7 +99,7 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_GetAddress_Succes
 func (suite *AddressRepositoryTestSuite) TestAddressRepository_DeleteUserAddresses_SuccessfullyDeletesAddresses() {
 	var userID int64 = 10
 
-	suite.sqlMock.ExpectExec(sql.DeleteUserAddresses).WithArgs(userID).WillReturnResult(sqlmock.NewResult(0, 1))
+	suite.sqlMock.ExpectExec(DeleteUserAddresses).WithArgs(userID).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err := suite.addressRepository.DeleteUserAddresses(userID)
 	if err != nil {
