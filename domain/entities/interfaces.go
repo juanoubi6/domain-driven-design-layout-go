@@ -1,5 +1,7 @@
 package entities
 
+import "context"
+
 type UserRepository interface {
 	GetUser(userID int64) (*User, error)
 	GetUsers(userIDs []int64) ([]User, error)
@@ -23,5 +25,5 @@ type MainDatabase interface {
 }
 
 type TxRepositoryCreator interface {
-	CreateTxMainDatabase() (MainDatabase, error)
+	CreateTxMainDatabase(ctx context.Context) (MainDatabase, error)
 }

@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"domain-driven-design-layout/domain/entities"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -14,8 +15,8 @@ func NewTxRepositoryFactory(db *sqlx.DB) entities.TxRepositoryCreator {
 	return &TxRepositoryFactory{db: db}
 }
 
-func (txRF *TxRepositoryFactory) CreateTxMainDatabase() (entities.MainDatabase, error) {
-	newTx, err := txRF.db.Beginx()
+func (txRF *TxRepositoryFactory) CreateTxMainDatabase(ctx context.Context) (entities.MainDatabase, error) {
+	newTx, err := txRF.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create transaction for mainDatabase: %w", err)
 	}

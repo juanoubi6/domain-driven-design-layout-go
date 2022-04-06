@@ -1,6 +1,7 @@
 package users
 
 import (
+	"context"
 	"domain-driven-design-layout/domain/entities"
 	"fmt"
 )
@@ -22,7 +23,7 @@ func NewDeleteUserAction(txRepositoryCreator entities.TxRepositoryCreator) (Dele
 }
 
 func (act *DeleteUserAction) Execute(id int64) error {
-	mainDatabase, err := act.txRepositoryCreator.CreateTxMainDatabase()
+	mainDatabase, err := act.txRepositoryCreator.CreateTxMainDatabase(context.Background())
 	if err != nil {
 		return fmt.Errorf("could not create repository. Error: %w", err)
 	}

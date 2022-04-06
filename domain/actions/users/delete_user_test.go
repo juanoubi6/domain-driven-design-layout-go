@@ -4,6 +4,7 @@ import (
 	"domain-driven-design-layout/domain"
 	"errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -14,7 +15,7 @@ func TestDeleteUser_Execute_Success(t *testing.T) {
 
 	var userId int64 = 1
 
-	txRepositoryCreatorMock.On("CreateTxMainDatabase").Return(mainDatabaseMock, nil)
+	txRepositoryCreatorMock.On("CreateTxMainDatabase", mock.Anything).Return(mainDatabaseMock, nil)
 	mainDatabaseMock.On("RollbackTx").Return(nil).Once()
 	mainDatabaseMock.On("DeleteUser", userId).Return(nil)
 	mainDatabaseMock.On("DeleteUserAddresses", userId).Return(nil)
@@ -32,7 +33,7 @@ func TestDeleteUser_Execute_FailsIfAnyRepositoryMethodFails(t *testing.T) {
 	var txRepositoryCreatorMock = new(domain.TxRepositoryCreatorMock)
 	var deleteUserAction, _ = NewDeleteUserAction(txRepositoryCreatorMock)
 
-	txRepositoryCreatorMock.On("CreateTxMainDatabase").Return(mainDatabaseMock, nil)
+	txRepositoryCreatorMock.On("CreateTxMainDatabase", mock.Anything).Return(mainDatabaseMock, nil)
 	mainDatabaseMock.On("RollbackTx").Return(nil).Once()
 	mainDatabaseMock.On("DeleteUser", int64(1)).Return(errors.New("some error"))
 
