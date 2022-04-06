@@ -54,3 +54,5 @@ const GetAddressById = `
 	FROM addresses a
 	WHERE a.id=$1
 `
+
+const DeleteUserAddresses = "DELETE FROM addresses WHERE user_id = $1"

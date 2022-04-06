@@ -23,7 +23,7 @@ func (suite *AddressRepositoryTestSuite) SetupTest() {
 		log.Fatalf("An error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	suite.addressRepository = &AddressRepository{db: sqlx.NewDb(mockDb, "postgres")}
+	suite.addressRepository = &AddressRepository{queryExecutor: QueryExecutor{db: sqlx.NewDb(mockDb, "postgres"), tx: nil}}
 	suite.sqlMock = mock
 }
 
@@ -92,6 +92,22 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_GetAddress_Succes
 
 	assert.Equal(suite.T(), addressId, address.ID)
 	assert.Nil(suite.T(), address.City)
+	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
+		suite.T().Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func (suite *AddressRepositoryTestSuite) TestAddressRepository_DeleteUserAddresses_SuccessfullyDeletesAddresses() {
+	var userID int64 = 10
+
+	suite.sqlMock.ExpectExec(sql.DeleteUserAddresses).WithArgs(userID).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	err := suite.addressRepository.DeleteUserAddresses(userID)
+	if err != nil {
+		assert.FailNow(suite.T(), err.Error())
+	}
+
+	assert.Nil(suite.T(), err)
 	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
 		suite.T().Errorf("there were unfulfilled expectations: %s", err)
 	}

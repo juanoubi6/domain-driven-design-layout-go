@@ -12,11 +12,11 @@ import (
 )
 
 type UserRepository struct {
-	db *sqlx.DB
+	queryExecutor QueryExecutor
 }
 
 func NewUserRepository(db *sqlx.DB) (*UserRepository, error) {
-	return &UserRepository{db: db}, nil
+	return &UserRepository{queryExecutor: QueryExecutor{db: db, tx: nil}}, nil
 }
 
 func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
@@ -24,7 +24,7 @@ func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
 
 	start := time.Now()
 
-	rows, err := ur.db.QueryxContext(context.TODO(), sql.GetUserWithAddressesById, id)
+	rows, err := ur.queryExecutor.db.QueryxContext(context.TODO(), sql.GetUserWithAddressesById, id)
 	if err != nil {
 		log.Printf("Error retrieving user of id %v: %v", id, err.Error())
 		return nil, err
@@ -53,11 +53,11 @@ func (ur *UserRepository) GetUser(id int64) (*entities.User, error) {
 
 func (ur *UserRepository) GetUsers(ids []int64) ([]entities.User, error) {
 	query, args, err := sqlx.In(sql.GetUsersWithAddressesByIds, ids)
-	query = ur.db.Rebind(query)
+	query = ur.queryExecutor.db.Rebind(query)
 
 	start := time.Now()
 
-	rows, err := ur.db.QueryxContext(context.TODO(), query, args...)
+	rows, err := ur.queryExecutor.db.QueryxContext(context.TODO(), query, args...)
 	if err != nil {
 		log.Printf("Error retrieving users of ids %v: %v", ids, err.Error())
 		return nil, err
@@ -96,7 +96,7 @@ func (ur *UserRepository) GetUsers(ids []int64) ([]entities.User, error) {
 
 func (ur *UserRepository) CreateUser(prototype entities.UserPrototype) (entities.User, error) {
 	// Start transaction to insert the user and it's addresses
-	tx, err := ur.db.Beginx()
+	tx, err := ur.queryExecutor.db.Beginx()
 	if err != nil {
 		log.Printf("Error creating transaction: %v", err.Error())
 		return entities.User{}, err
@@ -149,7 +149,7 @@ func (ur *UserRepository) UpdateUser(user entities.User) (entities.User, error) 
 	originalUser.LastName = user.LastName
 	originalUser.BirthDate = user.BirthDate
 
-	_, err = ur.db.ExecContext(context.Background(), sql.UpdateUser, originalUser.FirstName, originalUser.LastName, originalUser.BirthDate, originalUser.ID)
+	_, err = ur.queryExecutor.Exec(context.Background(), sql.UpdateUser, originalUser.FirstName, originalUser.LastName, originalUser.BirthDate, originalUser.ID)
 	if err != nil {
 		log.Printf("Error updating user: %v", err.Error())
 		return user, err
@@ -159,7 +159,7 @@ func (ur *UserRepository) UpdateUser(user entities.User) (entities.User, error) 
 }
 
 func (ur *UserRepository) DeleteUser(id int64) error {
-	_, err := ur.db.ExecContext(context.Background(), sql.DeleteUser, id)
+	_, err := ur.queryExecutor.Exec(context.Background(), sql.DeleteUser, id)
 	if err != nil {
 		log.Printf("Error deleting user: %v", err.Error())
 		return err

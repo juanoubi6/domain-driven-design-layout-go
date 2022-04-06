@@ -1,15 +1,16 @@
 package entities
 
 type UserRepository interface {
-	GetUser(int64) (*User, error)
-	GetUsers([]int64) ([]User, error)
-	CreateUser(UserPrototype) (User, error)
-	UpdateUser(User) (User, error)
-	DeleteUser(int64) error
+	GetUser(userID int64) (*User, error)
+	GetUsers(userIDs []int64) ([]User, error)
+	CreateUser(userPrototype UserPrototype) (User, error)
+	UpdateUser(user User) (User, error)
+	DeleteUser(userID int64) error
 }
 
 type AddressRepository interface {
-	CreateAddress(int64, AddressPrototype) (Address, error)
-	DeleteAddress(int64) error
-	GetAddress(int64) (*Address, error)
+	CreateAddress(userID int64, addressPrototype AddressPrototype) (Address, error)
+	DeleteAddress(addressID int64) error
+	GetAddress(addressID int64) (*Address, error)
+	DeleteUserAddresses(userID int64) error
 }

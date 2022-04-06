@@ -25,7 +25,7 @@ func (suite *UserRepositoryTestSuite) SetupTest() {
 		log.Fatalf("An error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	suite.userRepository = &UserRepository{db: sqlx.NewDb(mockDb, "postgres")}
+	suite.userRepository = &UserRepository{queryExecutor: QueryExecutor{db: sqlx.NewDb(mockDb, "postgres"), tx: nil}}
 	suite.sqlMock = mock
 }
 
