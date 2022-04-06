@@ -9,7 +9,7 @@ import (
 )
 
 func TestFindAddressById_Execute_Success(t *testing.T) {
-	var addressRepositoryMock = new(domain.AddressRepositoryMock)
+	var addressRepositoryMock = new(domain.MainDatabaseMock)
 	var findAddressByIdAction, _ = NewFindAddressByIdAction(addressRepositoryMock)
 
 	var addressId int64 = 1
@@ -25,7 +25,7 @@ func TestFindAddressById_Execute_Success(t *testing.T) {
 }
 
 func TestFindAddressById_Execute_FailsIfAddressRepositoryFails(t *testing.T) {
-	var addressRepositoryMock = new(domain.AddressRepositoryMock)
+	var addressRepositoryMock = new(domain.MainDatabaseMock)
 	var findAddressByIdAction, _ = NewFindAddressByIdAction(addressRepositoryMock)
 
 	addressRepositoryMock.On("GetAddress", mock.Anything).Return(nil, errors.New("error"))

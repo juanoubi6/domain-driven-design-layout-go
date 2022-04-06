@@ -9,8 +9,8 @@ import (
 )
 
 func TestCreateAddress_Execute_Success(t *testing.T) {
-	var userRepositoryMock = new(domain.UserRepositoryMock)
-	var addressRepositoryMock = new(domain.AddressRepositoryMock)
+	var userRepositoryMock = new(domain.MainDatabaseMock)
+	var addressRepositoryMock = new(domain.MainDatabaseMock)
 	var createAddressAction, _ = NewCreateAddressAction(addressRepositoryMock, userRepositoryMock)
 
 	var prototype = domain.CreateAddressPrototype()
@@ -31,8 +31,8 @@ func TestCreateAddress_Execute_Success(t *testing.T) {
 }
 
 func TestCreateAddress_Execute_FailsIfAddressRepositoryFails(t *testing.T) {
-	var userRepositoryMock = new(domain.UserRepositoryMock)
-	var addressRepositoryMock = new(domain.AddressRepositoryMock)
+	var userRepositoryMock = new(domain.MainDatabaseMock)
+	var addressRepositoryMock = new(domain.MainDatabaseMock)
 	var createAddressAction, _ = NewCreateAddressAction(addressRepositoryMock, userRepositoryMock)
 
 	var prototype = domain.CreateAddressPrototype()
@@ -50,8 +50,8 @@ func TestCreateAddress_Execute_FailsIfAddressRepositoryFails(t *testing.T) {
 }
 
 func TestCreateAddress_Execute_FailsIfUserDoesNotExist(t *testing.T) {
-	var userRepositoryMock = new(domain.UserRepositoryMock)
-	var addressRepositoryMock = new(domain.AddressRepositoryMock)
+	var userRepositoryMock = new(domain.MainDatabaseMock)
+	var addressRepositoryMock = new(domain.MainDatabaseMock)
 	var createAddressAction, _ = NewCreateAddressAction(addressRepositoryMock, userRepositoryMock)
 
 	var prototype = domain.CreateAddressPrototype()

@@ -9,7 +9,7 @@ import (
 )
 
 func TestCreateUser_Execute_Success(t *testing.T) {
-	var userRepositoryMock = new(domain.UserRepositoryMock)
+	var userRepositoryMock = new(domain.MainDatabaseMock)
 	var createUserAction, _ = NewCreateUserAction(userRepositoryMock)
 
 	var prototype = domain.CreateUserPrototype()
@@ -25,7 +25,7 @@ func TestCreateUser_Execute_Success(t *testing.T) {
 }
 
 func TestCreateUser_Execute_FailsIfUserRepositoryFails(t *testing.T) {
-	var userRepositoryMock = new(domain.UserRepositoryMock)
+	var userRepositoryMock = new(domain.MainDatabaseMock)
 	var createUserAction, _ = NewCreateUserAction(userRepositoryMock)
 
 	var prototype = domain.CreateUserPrototype()

@@ -8,7 +8,7 @@ import (
 )
 
 func TestDeleteAddress_Execute_Success(t *testing.T) {
-	var addressRepositoryMock = new(domain.AddressRepositoryMock)
+	var addressRepositoryMock = new(domain.MainDatabaseMock)
 	var deleteAddressAction, _ = NewDeleteAddressAction(addressRepositoryMock)
 
 	var addressID int64 = 1
@@ -22,7 +22,7 @@ func TestDeleteAddress_Execute_Success(t *testing.T) {
 }
 
 func TestDeleteAddress_Execute_FailsIfAddressRepositoryFails(t *testing.T) {
-	var addressRepositoryMock = new(domain.AddressRepositoryMock)
+	var addressRepositoryMock = new(domain.MainDatabaseMock)
 	var deleteAddressAction, _ = NewDeleteAddressAction(addressRepositoryMock)
 
 	addressRepositoryMock.On("DeleteAddress", int64(1)).Return(errors.New("error"))

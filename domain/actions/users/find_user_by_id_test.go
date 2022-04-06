@@ -9,7 +9,7 @@ import (
 )
 
 func TestFindUserById_Execute_Success(t *testing.T) {
-	var userRepositoryMock = new(domain.UserRepositoryMock)
+	var userRepositoryMock = new(domain.MainDatabaseMock)
 	var findUserByIdAction, _ = NewFindUserByIdAction(userRepositoryMock)
 
 	var userId int64 = 1
@@ -25,7 +25,7 @@ func TestFindUserById_Execute_Success(t *testing.T) {
 }
 
 func TestFindUserById_Execute_FailsIfUserRepositoryFails(t *testing.T) {
-	var userRepositoryMock = new(domain.UserRepositoryMock)
+	var userRepositoryMock = new(domain.MainDatabaseMock)
 	var findUserByIdAction, _ = NewFindUserByIdAction(userRepositoryMock)
 
 	userRepositoryMock.On("GetUser", mock.Anything).Return(nil, errors.New("error"))

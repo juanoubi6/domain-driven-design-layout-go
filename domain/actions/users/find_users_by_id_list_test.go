@@ -10,7 +10,7 @@ import (
 )
 
 func TestFindUsersByIdList_Execute_Success(t *testing.T) {
-	var userRepositoryMock = new(domain.UserRepositoryMock)
+	var userRepositoryMock = new(domain.MainDatabaseMock)
 	var findUsersByIdListAction, _ = NewFindUsersByIdListAction(userRepositoryMock)
 
 	var userIds = []int64{1, 2}
@@ -26,7 +26,7 @@ func TestFindUsersByIdList_Execute_Success(t *testing.T) {
 }
 
 func TestFindUsersByIdList_Execute_FailsIfUserRepositoryFails(t *testing.T) {
-	var userRepositoryMock = new(domain.UserRepositoryMock)
+	var userRepositoryMock = new(domain.MainDatabaseMock)
 	var findUsersByIdListAction, _ = NewFindUsersByIdListAction(userRepositoryMock)
 
 	userRepositoryMock.On("GetUsers", mock.Anything).Return([]entities.User{}, errors.New("error"))

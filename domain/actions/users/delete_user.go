@@ -10,12 +10,12 @@ type DeleteUser interface {
 }
 
 type DeleteUserAction struct {
-	userRepository entities.UserRepository
+	txRepositoryCreator entities.TxRepositoryCreator
 }
 
-func NewDeleteUserAction(repository entities.UserRepository) (DeleteUser, error) {
+func NewDeleteUserAction(txRepositoryCreator entities.TxRepositoryCreator) (DeleteUser, error) {
 	result := DeleteUserAction{
-		userRepository: repository,
+		txRepositoryCreator: txRepositoryCreator,
 	}
 
 	return &result, nil
@@ -23,8 +23,17 @@ func NewDeleteUserAction(repository entities.UserRepository) (DeleteUser, error)
 
 func (act *DeleteUserAction) Execute(id int64) error {
 	//Execute any business logic or validations you need
-	if err := act.userRepository.DeleteUser(id); err != nil {
-		return fmt.Errorf("user could not be deleted. Error: %v", err)
+	mainDatabase, err := act.txRepositoryCreator.CreateMainDatabase()
+	if err != nil {
+		return fmt.Errorf("could not create repository. Error: %w", err)
+	}
+
+	if err = mainDatabase.DeleteUser(id); err != nil {
+		return fmt.Errorf("user could not be deleted. Error: %w", err)
+	}
+
+	if err = mainDatabase.DeleteUserAddresses(id); err != nil {
+		return fmt.Errorf("user addresses could not be deleted. Error: %w", err)
 	}
 
 	return nil

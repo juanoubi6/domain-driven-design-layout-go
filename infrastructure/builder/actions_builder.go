@@ -38,7 +38,7 @@ func CreateActions(repositories *Repositories, txRepositoryCreator entities.TxRe
 		return nil, err
 	}
 
-	deleteUser, err := users.NewDeleteUserAction(repositories.UserRepository)
+	deleteUser, err := users.NewDeleteUserAction(txRepositoryCreator)
 	if err != nil {
 		return nil, err
 	}

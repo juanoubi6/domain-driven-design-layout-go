@@ -10,7 +10,7 @@ import (
 )
 
 func TestUpdateUser_Execute_Success(t *testing.T) {
-	var userRepositoryMock = new(domain.UserRepositoryMock)
+	var userRepositoryMock = new(domain.MainDatabaseMock)
 	var updateUserAction, _ = NewUpdateUserAction(userRepositoryMock)
 
 	var userToUpdate = domain.CreateUser()
@@ -28,7 +28,7 @@ func TestUpdateUser_Execute_Success(t *testing.T) {
 }
 
 func TestUpdateUser_Execute_FailsIfUserRepositoryFails(t *testing.T) {
-	var userRepositoryMock = new(domain.UserRepositoryMock)
+	var userRepositoryMock = new(domain.MainDatabaseMock)
 	var updateUserAction, _ = NewUpdateUserAction(userRepositoryMock)
 
 	userRepositoryMock.On("UpdateUser", mock.Anything).Return(entities.User{}, errors.New("error"))
