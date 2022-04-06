@@ -31,7 +31,7 @@ func TestDeleteUser_Execute_FailsIfAnyRepositoryMethodFails(t *testing.T) {
 	var deleteUserAction, _ = NewDeleteUserAction(txRepositoryCreatorMock)
 
 	txRepositoryCreatorMock.On("CreateMainDatabase").Return(mainDatabaseMock, nil)
-	mainDatabaseMock.On("DeleteUser", 1).Return(errors.New("some error"))
+	mainDatabaseMock.On("DeleteUser", int64(1)).Return(errors.New("some error"))
 
 	err := deleteUserAction.Execute(1)
 
