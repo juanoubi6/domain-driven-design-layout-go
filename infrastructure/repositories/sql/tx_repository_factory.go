@@ -14,10 +14,10 @@ func NewTxRepositoryFactory(db *sqlx.DB) entities.TxRepositoryCreator {
 	return &TxRepositoryFactory{db: db}
 }
 
-func (txRF *TxRepositoryFactory) CreateMainDatabase() (entities.MainDatabase, error) {
+func (txRF *TxRepositoryFactory) CreateTxMainDatabase() (entities.MainDatabase, error) {
 	newTx, err := txRF.db.Beginx()
 	if err != nil {
-		return nil, fmt.Errorf("unable to create transaction: %w", err)
+		return nil, fmt.Errorf("unable to create transaction for mainDatabase: %w", err)
 	}
 
 	return &QueryExecutor{db: txRF.db, tx: newTx}, nil

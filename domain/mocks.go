@@ -202,8 +202,8 @@ type TxRepositoryCreatorMock struct {
 	mock.Mock
 }
 
-// CreateMainDatabase provides a mock function with given fields:
-func (_m *TxRepositoryCreatorMock) CreateMainDatabase() (entities.MainDatabase, error) {
+// CreateTxMainDatabase provides a mock function with given fields:
+func (_m *TxRepositoryCreatorMock) CreateTxMainDatabase() (entities.MainDatabase, error) {
 	ret := _m.Called()
 
 	var r0 entities.MainDatabase
@@ -402,4 +402,18 @@ func (_m *MainDatabaseMock) UpdateUser(user entities.User) (entities.User, error
 	}
 
 	return r0, r1
+}
+
+// CommitTx provides a mock function
+func (_m *MainDatabaseMock) CommitTx() error {
+	ret := _m.Called()
+
+	return ret.Error(0)
+}
+
+// RollbackTx provides a mock function
+func (_m *MainDatabaseMock) RollbackTx() error {
+	ret := _m.Called()
+
+	return ret.Error(0)
 }

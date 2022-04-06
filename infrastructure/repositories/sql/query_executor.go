@@ -32,3 +32,27 @@ func (qe *QueryExecutor) Exec(ctx context.Context, query string, args ...interfa
 
 	return res, nil
 }
+
+func (qe *QueryExecutor) CommitTx() error {
+	if qe.tx == nil {
+		return nil
+	}
+
+	if err := qe.tx.Commit(); err != nil {
+		return fmt.Errorf("tx commit failed: %w", err)
+	}
+
+	return nil
+}
+
+func (qe *QueryExecutor) RollbackTx() error {
+	if qe.tx == nil {
+		return nil
+	}
+
+	if err := qe.tx.Rollback(); err != nil {
+		return fmt.Errorf("tx rollback failed: %w", err)
+	}
+
+	return nil
+}

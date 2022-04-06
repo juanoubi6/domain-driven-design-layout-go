@@ -14,9 +14,11 @@ func TestDeleteUser_Execute_Success(t *testing.T) {
 
 	var userId int64 = 1
 
-	txRepositoryCreatorMock.On("CreateMainDatabase").Return(mainDatabaseMock, nil)
+	txRepositoryCreatorMock.On("CreateTxMainDatabase").Return(mainDatabaseMock, nil)
+	mainDatabaseMock.On("RollbackTx").Return(nil).Once()
 	mainDatabaseMock.On("DeleteUser", userId).Return(nil)
 	mainDatabaseMock.On("DeleteUserAddresses", userId).Return(nil)
+	mainDatabaseMock.On("CommitTx").Return(nil).Once()
 
 	err := deleteUserAction.Execute(userId)
 
@@ -30,7 +32,8 @@ func TestDeleteUser_Execute_FailsIfAnyRepositoryMethodFails(t *testing.T) {
 	var txRepositoryCreatorMock = new(domain.TxRepositoryCreatorMock)
 	var deleteUserAction, _ = NewDeleteUserAction(txRepositoryCreatorMock)
 
-	txRepositoryCreatorMock.On("CreateMainDatabase").Return(mainDatabaseMock, nil)
+	txRepositoryCreatorMock.On("CreateTxMainDatabase").Return(mainDatabaseMock, nil)
+	mainDatabaseMock.On("RollbackTx").Return(nil).Once()
 	mainDatabaseMock.On("DeleteUser", int64(1)).Return(errors.New("some error"))
 
 	err := deleteUserAction.Execute(1)

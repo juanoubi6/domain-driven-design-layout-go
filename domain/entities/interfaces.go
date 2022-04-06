@@ -18,8 +18,10 @@ type AddressRepository interface {
 type MainDatabase interface {
 	UserRepository
 	AddressRepository
+	CommitTx() error
+	RollbackTx() error
 }
 
 type TxRepositoryCreator interface {
-	CreateMainDatabase() (MainDatabase, error)
+	CreateTxMainDatabase() (MainDatabase, error)
 }
