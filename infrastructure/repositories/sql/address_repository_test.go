@@ -60,7 +60,7 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_CreateAddress_Suc
 func (suite *AddressRepositoryTestSuite) TestAddressRepository_DeleteAddress_SuccessfullyDeletesAddress() {
 	var addressId int64 = 10
 
-	suite.sqlMock.ExpectExec(DeleteAddress).WithArgs(addressId).WillReturnResult(sqlmock.NewResult(0, 1))
+	suite.sqlMock.ExpectPrepare(DeleteAddress).ExpectExec().WithArgs(addressId).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err := suite.addressRepository.DeleteAddress(addressId)
 	if err != nil {
@@ -99,7 +99,7 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_GetAddress_Succes
 func (suite *AddressRepositoryTestSuite) TestAddressRepository_DeleteUserAddresses_SuccessfullyDeletesAddresses() {
 	var userID int64 = 10
 
-	suite.sqlMock.ExpectExec(DeleteUserAddresses).WithArgs(userID).WillReturnResult(sqlmock.NewResult(0, 1))
+	suite.sqlMock.ExpectPrepare(DeleteUserAddresses).ExpectExec().WithArgs(userID).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err := suite.addressRepository.DeleteUserAddresses(userID)
 	if err != nil {

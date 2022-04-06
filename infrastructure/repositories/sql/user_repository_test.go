@@ -89,7 +89,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_CreateUser_Successfully
 	assert.Equal(suite.T(), "firstName", user.FirstName)
 	assert.Equal(suite.T(), 2, len(user.Addresses))
 	assert.Equal(suite.T(), user.Addresses[0].UserID, user.ID)
-	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
+	if err = suite.sqlMock.ExpectationsWereMet(); err != nil {
 		suite.T().Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
@@ -139,7 +139,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_CreateUser_RollbacksTra
 		assert.FailNow(suite.T(), "method should have failed")
 	}
 
-	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
+	if err = suite.sqlMock.ExpectationsWereMet(); err != nil {
 		suite.T().Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
@@ -167,7 +167,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_GetUser_SuccessfullyRet
 
 	assert.Equal(suite.T(), userId, user.ID)
 	assert.Equal(suite.T(), 2, len(user.Addresses))
-	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
+	if err = suite.sqlMock.ExpectationsWereMet(); err != nil {
 		suite.T().Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
@@ -183,7 +183,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_GetUser_ReturnsNilWhenU
 	}
 
 	assert.Nil(suite.T(), nil, user)
-	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
+	if err = suite.sqlMock.ExpectationsWereMet(); err != nil {
 		suite.T().Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
@@ -229,7 +229,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_GetUsers_SuccessfullyRe
 	assert.Equal(suite.T(), 2, len(users))
 	assert.Equal(suite.T(), 2, len(users[0].Addresses))
 	assert.Equal(suite.T(), 1, len(users[1].Addresses))
-	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
+	if err = suite.sqlMock.ExpectationsWereMet(); err != nil {
 		suite.T().Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
@@ -254,7 +254,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_UpdateUser_Successfully
 			userId, "firstName", "lastName", time.Now(), 2, userId, "street 2", 11, nil,
 		),
 	)
-	suite.sqlMock.ExpectExec(UpdateUser).WithArgs(
+	suite.sqlMock.ExpectPrepare(UpdateUser).ExpectExec().WithArgs(
 		userWithUpdatedFields.FirstName,
 		userWithUpdatedFields.LastName,
 		userWithUpdatedFields.BirthDate,
@@ -269,7 +269,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_UpdateUser_Successfully
 	}
 
 	assert.Equal(suite.T(), "newFirstName", user.FirstName)
-	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
+	if err = suite.sqlMock.ExpectationsWereMet(); err != nil {
 		suite.T().Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
@@ -277,7 +277,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_UpdateUser_Successfully
 func (suite *UserRepositoryTestSuite) TestUserRepository_DeleteUser_SuccessfullyDeletesUser() {
 	var userId int64 = 10
 
-	suite.sqlMock.ExpectExec(DeleteUser).WithArgs(userId).WillReturnResult(
+	suite.sqlMock.ExpectPrepare(DeleteUser).ExpectExec().WithArgs(userId).WillReturnResult(
 		sqlmock.NewResult(0, 1),
 	)
 
@@ -287,7 +287,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_DeleteUser_Successfully
 	}
 
 	assert.Nil(suite.T(), err)
-	if err := suite.sqlMock.ExpectationsWereMet(); err != nil {
+	if err = suite.sqlMock.ExpectationsWereMet(); err != nil {
 		suite.T().Errorf("there were unfulfilled expectations: %s", err)
 	}
 }

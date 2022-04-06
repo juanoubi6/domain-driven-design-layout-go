@@ -19,13 +19,19 @@ func CreateQueryExecutor(db *sqlx.DB, tx *sqlx.Tx) *QueryExecutor {
 func (qe *QueryExecutor) Exec(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	var err error
 	var res sql.Result
+	var prepStmt *sqlx.Stmt
 
 	if qe.tx != nil {
-		res, err = qe.tx.ExecContext(ctx, query, args...)
+		prepStmt, err = qe.tx.PreparexContext(ctx, query)
 	} else {
-		res, err = qe.db.ExecContext(ctx, query, args...)
+		prepStmt, err = qe.db.PreparexContext(ctx, query)
 	}
 
+	if err != nil {
+		return nil, fmt.Errorf("error preparing statement: %w", err)
+	}
+
+	res, err = prepStmt.ExecContext(ctx, args...)
 	if err != nil {
 		return nil, fmt.Errorf("error executing query: %w", err)
 	}
@@ -42,6 +48,8 @@ func (qe *QueryExecutor) CommitTx() error {
 		return fmt.Errorf("tx commit failed: %w", err)
 	}
 
+	qe.tx = nil
+
 	return nil
 }
 
@@ -53,6 +61,8 @@ func (qe *QueryExecutor) RollbackTx() error {
 	if err := qe.tx.Rollback(); err != nil {
 		return fmt.Errorf("tx rollback failed: %w", err)
 	}
+
+	qe.tx = nil
 
 	return nil
 }
