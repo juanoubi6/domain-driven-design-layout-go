@@ -7,7 +7,10 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/prometheus/client_golang/prometheus"
 	"log"
+	"sync"
 )
+
+var registerQueryHistogram sync.Once
 
 // QueryTimeHistogram registers query time to measure db access times
 var QueryTimeHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -33,7 +36,9 @@ func CreateDatabaseConnection(config config.SQLConfig) *sqlx.DB {
 		log.Fatalln("DB | Could not connect to the database: " + err.Error())
 	}
 
-	prometheus.MustRegister(QueryTimeHistogram)
+	registerQueryHistogram.Do(func() {
+		prometheus.MustRegister(QueryTimeHistogram)
+	})
 
 	return db
 }
