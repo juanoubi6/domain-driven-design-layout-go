@@ -50,6 +50,9 @@ func (r *UserHandlers) FindUserById(c *gin.Context) {
 		return
 	}
 
+	appCtx := GetAppContext(c.Request)
+	appCtx.Logger.WithField("userID", userId).Info("Received request to find user by ID")
+
 	user, err := r.findUserByIdAction.Execute(int64(userId))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

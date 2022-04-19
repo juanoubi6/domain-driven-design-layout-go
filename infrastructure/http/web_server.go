@@ -37,6 +37,7 @@ func (w *WebServer) Start() error {
 
 func (w *WebServer) setMiddleware() {
 	w.engine.Use(gin.LoggerWithWriter(gin.DefaultWriter, basePath+"/health"))
+	w.engine.Use(CreateAppContextMiddleware())
 	w.engine.Use(w.handlers.MetricsHandler.ResponseDurationMiddleware())
 }
 
