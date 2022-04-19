@@ -2,6 +2,7 @@ package http
 
 import (
 	"domain-driven-design-layout/infrastructure/config"
+	"domain-driven-design-layout/infrastructure/http/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,8 +38,8 @@ func (w *WebServer) Start() error {
 
 func (w *WebServer) setMiddleware() {
 	w.engine.Use(gin.LoggerWithWriter(gin.DefaultWriter, basePath+"/health"))
-	w.engine.Use(CreateAppContextMiddleware())
-	w.engine.Use(w.handlers.MetricsHandler.ResponseDurationMiddleware())
+	w.engine.Use(middleware.CreateAppContextMiddleware())
+	w.engine.Use(middleware.CreateResponseDurationMiddleware())
 }
 
 func (w *WebServer) setHandlers() {
