@@ -6,7 +6,7 @@ import (
 )
 
 type CreateUser interface {
-	Execute(entities.UserPrototype) (entities.User, error)
+	Execute(ctx entities.ApplicationContext, proto entities.UserPrototype) (entities.User, error)
 }
 
 type CreateUserAction struct {
@@ -21,10 +21,10 @@ func NewCreateUserAction(repository entities.UserRepository) (CreateUser, error)
 	return &result, nil
 }
 
-func (act *CreateUserAction) Execute(prototype entities.UserPrototype) (entities.User, error) {
+func (act *CreateUserAction) Execute(ctx entities.ApplicationContext, prototype entities.UserPrototype) (entities.User, error) {
 	//Execute any business logic or validations you need
 	var user entities.User
-	user, err := act.userRepository.CreateUser(prototype)
+	user, err := act.userRepository.CreateUser(ctx, prototype)
 	if err != nil {
 		return user, fmt.Errorf("user could not be created. Error: %v", err)
 	}

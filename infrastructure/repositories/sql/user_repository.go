@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func (qe *QueryExecutor) GetUser(id int64) (*entities.User, error) {
+func (qe *QueryExecutor) GetUser(ctx entities.ApplicationContext, id int64) (*entities.User, error) {
 	var user entities.User
 
 	start := time.Now()
@@ -42,7 +42,7 @@ func (qe *QueryExecutor) GetUser(id int64) (*entities.User, error) {
 	return &user, nil
 }
 
-func (qe *QueryExecutor) GetUsers(ids []int64) ([]entities.User, error) {
+func (qe *QueryExecutor) GetUsers(ctx entities.ApplicationContext, ids []int64) ([]entities.User, error) {
 	query, args, err := sqlx.In(GetUsersWithAddressesByIds, ids)
 	query = qe.db.Rebind(query)
 
@@ -85,7 +85,7 @@ func (qe *QueryExecutor) GetUsers(ids []int64) ([]entities.User, error) {
 	return users, nil
 }
 
-func (qe *QueryExecutor) CreateUser(prototype entities.UserPrototype) (entities.User, error) {
+func (qe *QueryExecutor) CreateUser(ctx entities.ApplicationContext, prototype entities.UserPrototype) (entities.User, error) {
 	// Start transaction to insert the user and it's addresses
 	tx, err := qe.db.Beginx()
 	if err != nil {
@@ -118,7 +118,7 @@ func (qe *QueryExecutor) CreateUser(prototype entities.UserPrototype) (entities.
 		return entities.User{}, err
 	}
 
-	createdUser, err := qe.GetUser(userId)
+	createdUser, err := qe.GetUser(ctx, userId)
 	if err != nil {
 		log.Printf("Error retrieving created user: %v", err.Error())
 		return entities.User{}, err
@@ -127,8 +127,8 @@ func (qe *QueryExecutor) CreateUser(prototype entities.UserPrototype) (entities.
 	return *createdUser, nil
 }
 
-func (qe *QueryExecutor) UpdateUser(user entities.User) (entities.User, error) {
-	originalUser, err := qe.GetUser(user.ID)
+func (qe *QueryExecutor) UpdateUser(ctx entities.ApplicationContext, user entities.User) (entities.User, error) {
+	originalUser, err := qe.GetUser(ctx, user.ID)
 	if err != nil {
 		return user, err
 	}
@@ -149,7 +149,7 @@ func (qe *QueryExecutor) UpdateUser(user entities.User) (entities.User, error) {
 	return *originalUser, nil
 }
 
-func (qe *QueryExecutor) DeleteUser(id int64) error {
+func (qe *QueryExecutor) DeleteUser(ctx entities.ApplicationContext, id int64) error {
 	_, err := qe.Exec(context.Background(), DeleteUser, id)
 	if err != nil {
 		log.Printf("Error deleting user: %v", err.Error())

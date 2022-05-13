@@ -14,3 +14,15 @@ type AppContext struct {
 	Logger        logrus.FieldLogger
 	context.Context
 }
+
+func (appCtx *AppContext) GetCorrelationID() string {
+	return appCtx.CorrelationID
+}
+
+func (appCtx *AppContext) GetLogger() logrus.FieldLogger {
+	return appCtx.Logger
+}
+
+func CreateEmptyAppContext() AppContext {
+	return AppContext{}
+}

@@ -44,7 +44,7 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_CreateAddress_Suc
 		sqlmock.NewRows([]string{"id"}).AddRow(99),
 	)
 
-	address, err := suite.addressRepository.CreateAddress(userID, prototype)
+	address, err := suite.addressRepository.CreateAddress(entities.CreateEmptyAppContext(), userID, prototype)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}
@@ -62,7 +62,7 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_DeleteAddress_Suc
 
 	suite.sqlMock.ExpectPrepare(DeleteAddress).ExpectExec().WithArgs(addressId).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err := suite.addressRepository.DeleteAddress(addressId)
+	err := suite.addressRepository.DeleteAddress(entities.CreateEmptyAppContext(), addressId)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}
@@ -84,7 +84,7 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_GetAddress_Succes
 		),
 	)
 
-	address, err := suite.addressRepository.GetAddress(addressId)
+	address, err := suite.addressRepository.GetAddress(entities.CreateEmptyAppContext(), addressId)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}
@@ -101,7 +101,7 @@ func (suite *AddressRepositoryTestSuite) TestAddressRepository_DeleteUserAddress
 
 	suite.sqlMock.ExpectPrepare(DeleteUserAddresses).ExpectExec().WithArgs(userID).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err := suite.addressRepository.DeleteUserAddresses(userID)
+	err := suite.addressRepository.DeleteUserAddresses(entities.CreateEmptyAppContext(), userID)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}

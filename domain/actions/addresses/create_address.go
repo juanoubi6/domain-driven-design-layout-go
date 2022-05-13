@@ -7,7 +7,7 @@ import (
 )
 
 type CreateAddress interface {
-	Execute(userID int64, prototype entities.AddressPrototype) (entities.Address, error)
+	Execute(ctx entities.ApplicationContext, userID int64, prototype entities.AddressPrototype) (entities.Address, error)
 }
 
 type CreateAddressAction struct {
@@ -27,9 +27,9 @@ func NewCreateAddressAction(
 	return &result, nil
 }
 
-func (act *CreateAddressAction) Execute(userID int64, prototype entities.AddressPrototype) (entities.Address, error) {
+func (act *CreateAddressAction) Execute(ctx entities.ApplicationContext, userID int64, prototype entities.AddressPrototype) (entities.Address, error) {
 	//Execute any business logic or validations you need, for example, validating user existence
-	user, err := act.userRepository.GetUser(userID)
+	user, err := act.userRepository.GetUser(ctx, userID)
 	if err != nil {
 		return entities.Address{}, fmt.Errorf("user could not be found. Error: %v", err)
 	}
@@ -38,7 +38,7 @@ func (act *CreateAddressAction) Execute(userID int64, prototype entities.Address
 		return entities.Address{}, errors.New("user does not exist")
 	}
 
-	createdAddress, err := act.addressRepository.CreateAddress(userID, prototype)
+	createdAddress, err := act.addressRepository.CreateAddress(ctx, userID, prototype)
 	if err != nil {
 		return entities.Address{}, fmt.Errorf("could not create address. Error: %v", err)
 	}

@@ -29,13 +29,15 @@ func NewUserHandlers(actions *builder.Actions) (*UserHandlers, error) {
 }
 
 func (r *UserHandlers) CreateUser(c *gin.Context) {
+	appCtx := middleware.GetAppContext(c.Request)
+
 	var request requests.CreateUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	createdUser, err := r.createUserAction.Execute(request.ToUserPrototype())
+	createdUser, err := r.createUserAction.Execute(appCtx, request.ToUserPrototype())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -45,16 +47,17 @@ func (r *UserHandlers) CreateUser(c *gin.Context) {
 }
 
 func (r *UserHandlers) FindUserById(c *gin.Context) {
+	appCtx := middleware.GetAppContext(c.Request)
+
 	userId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id value in URL"})
 		return
 	}
 
-	appCtx := middleware.GetAppContext(c.Request)
 	appCtx.Logger.WithField("userID", userId).Info("Received request to find user by ID")
 
-	user, err := r.findUserByIdAction.Execute(int64(userId))
+	user, err := r.findUserByIdAction.Execute(appCtx, int64(userId))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -69,13 +72,15 @@ func (r *UserHandlers) FindUserById(c *gin.Context) {
 }
 
 func (r *UserHandlers) FindUsersByIdList(c *gin.Context) {
+	appCtx := middleware.GetAppContext(c.Request)
+
 	var request requests.FindUsersByIdListRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	userList, err := r.findUsersByIdListAction.Execute(request.UserIDs)
+	userList, err := r.findUsersByIdListAction.Execute(appCtx, request.UserIDs)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -85,13 +90,15 @@ func (r *UserHandlers) FindUsersByIdList(c *gin.Context) {
 }
 
 func (r *UserHandlers) UpdateUser(c *gin.Context) {
+	appCtx := middleware.GetAppContext(c.Request)
+
 	var request requests.UpdateUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	updatedUser, err := r.updateUserAction.Execute(request.ToUser())
+	updatedUser, err := r.updateUserAction.Execute(appCtx, request.ToUser())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -101,13 +108,15 @@ func (r *UserHandlers) UpdateUser(c *gin.Context) {
 }
 
 func (r *UserHandlers) DeleteUser(c *gin.Context) {
+	appCtx := middleware.GetAppContext(c.Request)
+
 	userId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id value in URL"})
 		return
 	}
 
-	if err := r.deleteUserAction.Execute(int64(userId)); err != nil {
+	if err := r.deleteUserAction.Execute(appCtx, int64(userId)); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

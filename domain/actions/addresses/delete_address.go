@@ -5,7 +5,7 @@ import (
 )
 
 type DeleteAddress interface {
-	Execute(int64) error
+	Execute(ctx entities.ApplicationContext, userID int64) error
 }
 
 type DeleteAddressAction struct {
@@ -20,9 +20,9 @@ func NewDeleteAddressAction(repository entities.AddressRepository) (DeleteAddres
 	return &result, nil
 }
 
-func (act *DeleteAddressAction) Execute(id int64) error {
+func (act *DeleteAddressAction) Execute(ctx entities.ApplicationContext, id int64) error {
 	//Execute any business logic or validations you need
-	if err := act.addressRepository.DeleteAddress(id); err != nil {
+	if err := act.addressRepository.DeleteAddress(ctx, id); err != nil {
 		return err
 	}
 

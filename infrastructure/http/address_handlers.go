@@ -3,6 +3,7 @@ package http
 import (
 	"domain-driven-design-layout/domain/actions/addresses"
 	"domain-driven-design-layout/infrastructure/builder"
+	"domain-driven-design-layout/infrastructure/http/middleware"
 	"domain-driven-design-layout/infrastructure/http/requests"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -24,6 +25,8 @@ func NewAddressHandlers(actions *builder.Actions) (*AddressHandlers, error) {
 }
 
 func (r *AddressHandlers) CreateAddress(c *gin.Context) {
+	appCtx := middleware.GetAppContext(c.Request)
+
 	userID, err := strconv.Atoi(c.Param("userID"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid address id value in URL"})
@@ -36,7 +39,7 @@ func (r *AddressHandlers) CreateAddress(c *gin.Context) {
 		return
 	}
 
-	createdAddress, err := r.createAddressAction.Execute(int64(userID), request.ToAddressPrototype())
+	createdAddress, err := r.createAddressAction.Execute(appCtx, int64(userID), request.ToAddressPrototype())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -46,13 +49,15 @@ func (r *AddressHandlers) CreateAddress(c *gin.Context) {
 }
 
 func (r *AddressHandlers) DeleteAddress(c *gin.Context) {
+	appCtx := middleware.GetAppContext(c.Request)
+
 	addressId, err := strconv.Atoi(c.Param("addressID"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid address id value in URL"})
 		return
 	}
 
-	if err := r.deleteAddressAction.Execute(int64(addressId)); err != nil {
+	if err := r.deleteAddressAction.Execute(appCtx, int64(addressId)); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -61,13 +66,15 @@ func (r *AddressHandlers) DeleteAddress(c *gin.Context) {
 }
 
 func (r *AddressHandlers) FindAddressById(c *gin.Context) {
+	appCtx := middleware.GetAppContext(c.Request)
+
 	addressId, err := strconv.Atoi(c.Param("addressID"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid address id value in URL"})
 		return
 	}
 
-	address, err := r.findAddressById.Execute(int64(addressId))
+	address, err := r.findAddressById.Execute(appCtx, int64(addressId))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

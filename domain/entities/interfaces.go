@@ -3,18 +3,18 @@ package entities
 import "context"
 
 type UserRepository interface {
-	GetUser(userID int64) (*User, error)
-	GetUsers(userIDs []int64) ([]User, error)
-	CreateUser(userPrototype UserPrototype) (User, error)
-	UpdateUser(user User) (User, error)
-	DeleteUser(userID int64) error
+	GetUser(ctx ApplicationContext, userID int64) (*User, error)
+	GetUsers(ctx ApplicationContext, userIDs []int64) ([]User, error)
+	CreateUser(ctx ApplicationContext, userPrototype UserPrototype) (User, error)
+	UpdateUser(ctx ApplicationContext, user User) (User, error)
+	DeleteUser(ctx ApplicationContext, userID int64) error
 }
 
 type AddressRepository interface {
-	CreateAddress(userID int64, addressPrototype AddressPrototype) (Address, error)
-	DeleteAddress(addressID int64) error
-	GetAddress(addressID int64) (*Address, error)
-	DeleteUserAddresses(userID int64) error
+	CreateAddress(ctx ApplicationContext, userID int64, addressPrototype AddressPrototype) (Address, error)
+	DeleteAddress(ctx ApplicationContext, addressID int64) error
+	GetAddress(ctx ApplicationContext, addressID int64) (*Address, error)
+	DeleteUserAddresses(ctx ApplicationContext, userID int64) error
 }
 
 type MainDatabase interface {

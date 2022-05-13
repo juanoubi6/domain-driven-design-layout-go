@@ -81,7 +81,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_CreateUser_Successfully
 		),
 	)
 
-	user, err := suite.userRepository.CreateUser(prototype)
+	user, err := suite.userRepository.CreateUser(entities.CreateEmptyAppContext(), prototype)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}
@@ -134,7 +134,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_CreateUser_RollbacksTra
 	)
 	suite.sqlMock.ExpectRollback()
 
-	_, err := suite.userRepository.CreateUser(prototype)
+	_, err := suite.userRepository.CreateUser(entities.CreateEmptyAppContext(), prototype)
 	if err == nil {
 		assert.FailNow(suite.T(), "method should have failed")
 	}
@@ -157,7 +157,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_GetUser_SuccessfullyRet
 		),
 	)
 
-	user, err := suite.userRepository.GetUser(userId)
+	user, err := suite.userRepository.GetUser(entities.CreateEmptyAppContext(), userId)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}
@@ -177,7 +177,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_GetUser_ReturnsNilWhenU
 
 	suite.sqlMock.ExpectQuery(GetUserWithAddressesById).WithArgs(userId).WillReturnRows(sqlmock.NewRows([]string{}))
 
-	user, err := suite.userRepository.GetUser(999)
+	user, err := suite.userRepository.GetUser(entities.CreateEmptyAppContext(), 999)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}
@@ -218,7 +218,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_GetUsers_SuccessfullyRe
 		),
 	)
 
-	users, err := suite.userRepository.GetUsers([]int64{userId1, userId2})
+	users, err := suite.userRepository.GetUsers(entities.CreateEmptyAppContext(), []int64{userId1, userId2})
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}
@@ -263,7 +263,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_UpdateUser_Successfully
 		sqlmock.NewResult(0, 1),
 	)
 
-	user, err := suite.userRepository.UpdateUser(userWithUpdatedFields)
+	user, err := suite.userRepository.UpdateUser(entities.CreateEmptyAppContext(), userWithUpdatedFields)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}
@@ -281,7 +281,7 @@ func (suite *UserRepositoryTestSuite) TestUserRepository_DeleteUser_Successfully
 		sqlmock.NewResult(0, 1),
 	)
 
-	err := suite.userRepository.DeleteUser(userId)
+	err := suite.userRepository.DeleteUser(entities.CreateEmptyAppContext(), userId)
 	if err != nil {
 		assert.FailNow(suite.T(), err.Error())
 	}

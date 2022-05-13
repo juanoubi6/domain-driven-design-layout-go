@@ -6,7 +6,7 @@ import (
 )
 
 type FindAddressById interface {
-	Execute(int64) (*entities.Address, error)
+	Execute(ctx entities.ApplicationContext, addressID int64) (*entities.Address, error)
 }
 
 type FindAddressByIdAction struct {
@@ -21,9 +21,9 @@ func NewFindAddressByIdAction(repository entities.AddressRepository) (FindAddres
 	return &result, nil
 }
 
-func (act *FindAddressByIdAction) Execute(id int64) (*entities.Address, error) {
+func (act *FindAddressByIdAction) Execute(ctx entities.ApplicationContext, id int64) (*entities.Address, error) {
 	//Execute any business logic or validations you need
-	address, err := act.addressRepository.GetAddress(id)
+	address, err := act.addressRepository.GetAddress(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("user could not be found. Error: %v", err)
 	}

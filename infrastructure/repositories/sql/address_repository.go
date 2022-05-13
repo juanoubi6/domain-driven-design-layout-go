@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (qe *QueryExecutor) CreateAddress(userID int64, prototype entities.AddressPrototype) (entities.Address, error) {
+func (qe *QueryExecutor) CreateAddress(ctx entities.ApplicationContext, userID int64, prototype entities.AddressPrototype) (entities.Address, error) {
 	addressModel := models.CreateAddressModelFromPrototype(prototype, userID)
 
 	var addressID int64
@@ -24,7 +24,7 @@ func (qe *QueryExecutor) CreateAddress(userID int64, prototype entities.AddressP
 	return addressModel.ToAddress(), nil
 }
 
-func (qe *QueryExecutor) DeleteAddress(id int64) error {
+func (qe *QueryExecutor) DeleteAddress(ctx entities.ApplicationContext, id int64) error {
 	_, err := qe.Exec(context.Background(), DeleteAddress, id)
 	if err != nil {
 		log.Printf("Error deleting address: %v", err.Error())
@@ -34,7 +34,7 @@ func (qe *QueryExecutor) DeleteAddress(id int64) error {
 	return nil
 }
 
-func (qe *QueryExecutor) GetAddress(id int64) (*entities.Address, error) {
+func (qe *QueryExecutor) GetAddress(ctx entities.ApplicationContext, id int64) (*entities.Address, error) {
 	var address entities.Address
 	var addressModel models.AddressModel
 
@@ -57,7 +57,7 @@ func (qe *QueryExecutor) GetAddress(id int64) (*entities.Address, error) {
 	return &address, nil
 }
 
-func (qe *QueryExecutor) DeleteUserAddresses(userID int64) error {
+func (qe *QueryExecutor) DeleteUserAddresses(ctx entities.ApplicationContext, userID int64) error {
 	_, err := qe.Exec(context.Background(), DeleteUserAddresses, userID)
 	if err != nil {
 		log.Printf("Error deleting user addresses: %v", err.Error())

@@ -6,7 +6,7 @@ import (
 )
 
 type FindUserById interface {
-	Execute(int64) (*entities.User, error)
+	Execute(ctx entities.ApplicationContext, userID int64) (*entities.User, error)
 }
 
 type FindUserByIdAction struct {
@@ -21,10 +21,10 @@ func NewFindUserByIdAction(repository entities.UserRepository) (FindUserById, er
 	return &result, nil
 }
 
-func (act *FindUserByIdAction) Execute(id int64) (*entities.User, error) {
+func (act *FindUserByIdAction) Execute(ctx entities.ApplicationContext, id int64) (*entities.User, error) {
 	//Execute any business logic or validations you need
 	var user *entities.User
-	user, err := act.userRepository.GetUser(id)
+	user, err := act.userRepository.GetUser(ctx, id)
 	if err != nil {
 		return user, fmt.Errorf("user could not be found. Error: %v", err)
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 type UpdateUser interface {
-	Execute(user entities.User) (entities.User, error)
+	Execute(ctx entities.ApplicationContext, user entities.User) (entities.User, error)
 }
 
 type UpdateUserAction struct {
@@ -21,9 +21,9 @@ func NewUpdateUserAction(repository entities.UserRepository) (UpdateUser, error)
 	return &result, nil
 }
 
-func (act *UpdateUserAction) Execute(user entities.User) (entities.User, error) {
+func (act *UpdateUserAction) Execute(ctx entities.ApplicationContext, user entities.User) (entities.User, error) {
 	//Execute any business logic or validations you need
-	user, err := act.userRepository.UpdateUser(user)
+	user, err := act.userRepository.UpdateUser(ctx, user)
 	if err != nil {
 		return user, fmt.Errorf("user could not be updated. Error: %v", err)
 	}

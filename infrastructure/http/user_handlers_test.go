@@ -2,8 +2,8 @@ package http
 
 import (
 	"bytes"
-	"domain-driven-design-layout/domain"
 	"domain-driven-design-layout/domain/entities"
+	"domain-driven-design-layout/domain/mocks"
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -17,11 +17,11 @@ import (
 	"time"
 )
 
-var mockCreateUserAction = new(domain.CreateUserMock)
-var mockFindUserByIdAction = new(domain.FindUserByIdMock)
-var mockFindUsersByIdListAction = new(domain.FindUsersByIdListMock)
-var mockUpdateUserAction = new(domain.UpdateUserMock)
-var mockDeleteUserAction = new(domain.DeleteUserMock)
+var mockCreateUserAction = new(mocks.CreateUserMock)
+var mockFindUserByIdAction = new(mocks.FindUserByIdMock)
+var mockFindUsersByIdListAction = new(mocks.FindUsersByIdListMock)
+var mockUpdateUserAction = new(mocks.UpdateUserMock)
+var mockDeleteUserAction = new(mocks.DeleteUserMock)
 
 type UserHandlersTestSuite struct {
 	suite.Suite
@@ -29,11 +29,11 @@ type UserHandlersTestSuite struct {
 }
 
 func (suite *UserHandlersTestSuite) SetupTest() {
-	mockCreateUserAction = new(domain.CreateUserMock)
-	mockFindUserByIdAction = new(domain.FindUserByIdMock)
-	mockFindUsersByIdListAction = new(domain.FindUsersByIdListMock)
-	mockUpdateUserAction = new(domain.UpdateUserMock)
-	mockDeleteUserAction = new(domain.DeleteUserMock)
+	mockCreateUserAction = new(mocks.CreateUserMock)
+	mockFindUserByIdAction = new(mocks.FindUserByIdMock)
+	mockFindUsersByIdListAction = new(mocks.FindUsersByIdListMock)
+	mockUpdateUserAction = new(mocks.UpdateUserMock)
+	mockDeleteUserAction = new(mocks.DeleteUserMock)
 
 	router := gin.New()
 
@@ -66,7 +66,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_CreateUser_SuccessReturns20
 
 	expected := createUser()
 
-	mockCreateUserAction.On("Execute", mock.Anything).Return(expected, nil)
+	mockCreateUserAction.On("Execute", mock.AnythingOfType("*entities.AppContext"), mock.Anything).Return(expected, nil)
 
 	suite.router.ServeHTTP(w, req)
 
@@ -93,7 +93,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_CreateUser_Returns400OnActi
 	body, _ := json.Marshal(createUserBodyRequest())
 	req, _ := http.NewRequest("POST", "/users-api/users", bytes.NewBuffer(body))
 
-	mockCreateUserAction.On("Execute", mock.Anything).Return(createUser(), errors.New("error"))
+	mockCreateUserAction.On("Execute", mock.AnythingOfType("*entities.AppContext"), mock.Anything).Return(createUser(), errors.New("error"))
 
 	suite.router.ServeHTTP(w, req)
 
@@ -108,7 +108,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_Returns200OnSu
 
 	expected := createUser()
 
-	mockFindUserByIdAction.On("Execute", int64(1)).Return(&expected, nil)
+	mockFindUserByIdAction.On("Execute", mock.AnythingOfType("*entities.AppContext"), int64(1)).Return(&expected, nil)
 
 	suite.router.ServeHTTP(w, req)
 
@@ -134,7 +134,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_Returns404When
 
 	req, _ := http.NewRequest("GET", "/users-api/users/1", nil)
 
-	mockFindUserByIdAction.On("Execute", int64(1)).Return(nil, nil)
+	mockFindUserByIdAction.On("Execute", mock.AnythingOfType("*entities.AppContext"), int64(1)).Return(nil, nil)
 
 	suite.router.ServeHTTP(w, req)
 
@@ -147,7 +147,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUserById_Returns400OnAc
 
 	req, _ := http.NewRequest("GET", "/users-api/users/1", nil)
 
-	mockFindUserByIdAction.On("Execute", int64(1)).Return(nil, errors.New("error"))
+	mockFindUserByIdAction.On("Execute", mock.AnythingOfType("*entities.AppContext"), int64(1)).Return(nil, errors.New("error"))
 
 	suite.router.ServeHTTP(w, req)
 
@@ -163,7 +163,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUsersByIdList_Returns20
 
 	expected := []entities.User{createUser()}
 
-	mockFindUsersByIdListAction.On("Execute", []int64{1, 2, 3}).Return(expected, nil)
+	mockFindUsersByIdListAction.On("Execute", mock.AnythingOfType("*entities.AppContext"), []int64{1, 2, 3}).Return(expected, nil)
 
 	suite.router.ServeHTTP(w, req)
 
@@ -189,7 +189,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_FindUsersByIdList_Returns40
 	body, _ := json.Marshal(findUsersByIdListBodyRequest())
 	req, _ := http.NewRequest("POST", "/users-api/users/list", bytes.NewBuffer(body))
 
-	mockFindUsersByIdListAction.On("Execute", mock.Anything).Return(nil, errors.New("error"))
+	mockFindUsersByIdListAction.On("Execute", mock.AnythingOfType("*entities.AppContext"), mock.Anything).Return(nil, errors.New("error"))
 
 	suite.router.ServeHTTP(w, req)
 
@@ -218,7 +218,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_UpdateUser_Returns200OnSucc
 
 	expected := createUser()
 
-	mockUpdateUserAction.On("Execute", mock.Anything).Return(expected, nil)
+	mockUpdateUserAction.On("Execute", mock.AnythingOfType("*entities.AppContext"), mock.Anything).Return(expected, nil)
 
 	suite.router.ServeHTTP(w, req)
 
@@ -257,7 +257,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_UpdateUser_Returns400OnActi
 	body, _ := json.Marshal(updateUserBodyRequest())
 	req, _ := http.NewRequest("PUT", "/users-api/users", bytes.NewBuffer(body))
 
-	mockUpdateUserAction.On("Execute", mock.Anything).Return(createUser(), errors.New("error"))
+	mockUpdateUserAction.On("Execute", mock.AnythingOfType("*entities.AppContext"), mock.Anything).Return(createUser(), errors.New("error"))
 
 	suite.router.ServeHTTP(w, req)
 
@@ -270,7 +270,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_DeleteUser_Returns400OnActi
 
 	req, _ := http.NewRequest("DELETE", "/users-api/users/1", nil)
 
-	mockDeleteUserAction.On("Execute", int64(1)).Return(errors.New("error"))
+	mockDeleteUserAction.On("Execute", mock.AnythingOfType("*entities.AppContext"), int64(1)).Return(errors.New("error"))
 
 	suite.router.ServeHTTP(w, req)
 
@@ -283,7 +283,7 @@ func (suite *UserHandlersTestSuite) TestUserHandlers_DeleteUser_Returns200OnSucc
 
 	req, _ := http.NewRequest("DELETE", "/users-api/users/1", nil)
 
-	mockDeleteUserAction.On("Execute", int64(1)).Return(nil)
+	mockDeleteUserAction.On("Execute", mock.AnythingOfType("*entities.AppContext"), int64(1)).Return(nil)
 
 	suite.router.ServeHTTP(w, req)
 

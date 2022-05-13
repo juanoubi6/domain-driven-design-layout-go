@@ -7,7 +7,7 @@ import (
 )
 
 type DeleteUser interface {
-	Execute(int64) error
+	Execute(ctx entities.ApplicationContext, userID int64) error
 }
 
 type DeleteUserAction struct {
@@ -22,18 +22,18 @@ func NewDeleteUserAction(txRepositoryCreator entities.TxRepositoryCreator) (Dele
 	return &result, nil
 }
 
-func (act *DeleteUserAction) Execute(id int64) error {
+func (act *DeleteUserAction) Execute(ctx entities.ApplicationContext, id int64) error {
 	mainDatabase, err := act.txRepositoryCreator.CreateTxMainDatabase(context.Background())
 	if err != nil {
 		return fmt.Errorf("could not create repository. Error: %w", err)
 	}
 	defer mainDatabase.RollbackTx()
 
-	if err = mainDatabase.DeleteUser(id); err != nil {
+	if err = mainDatabase.DeleteUser(ctx, id); err != nil {
 		return fmt.Errorf("user could not be deleted. Error: %w", err)
 	}
 
-	if err = mainDatabase.DeleteUserAddresses(id); err != nil {
+	if err = mainDatabase.DeleteUserAddresses(ctx, id); err != nil {
 		return fmt.Errorf("user addresses could not be deleted. Error: %w", err)
 	}
 
