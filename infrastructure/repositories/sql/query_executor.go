@@ -36,6 +36,11 @@ func (qe *QueryExecutor) Exec(ctx context.Context, query string, args ...interfa
 		return nil, fmt.Errorf("error executing query: %w", err)
 	}
 
+	err = prepStmt.Close()
+	if err != nil {
+		return nil, fmt.Errorf("error closing prep stmt: %w", err)
+	}
+
 	return res, nil
 }
 
